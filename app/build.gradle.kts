@@ -38,6 +38,15 @@ android {
     buildFeatures {
         compose = true
     }
+    applicationVariants.all {
+        if (buildType.name == "release") {
+            outputs.forEach { output ->
+                val outputImpl = output as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+                val newName = "LibreHabit-v${defaultConfig.versionName}.apk"
+                outputImpl.outputFileName = newName
+            }
+        }
+    }
 }
 
 dependencies {
@@ -64,13 +73,12 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     androidTestImplementation("androidx.room:room-testing:$room_version")
-
     // ViewModel for Jetpack Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
-
     // Coroutines Test
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
-
     // Testing
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
+    implementation("com.patrykandpatrick.vico:core:1.14.0")
+    implementation("com.patrykandpatrick.vico:compose-m3:1.14.0")
 }

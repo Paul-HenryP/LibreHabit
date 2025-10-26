@@ -25,3 +25,11 @@ MIT License
 
 ## 🤝 Contributing
 Feel free to open issues or submit pull requests. See `CONTRIBUTING.md` for guidelines.
+
+## Support the Creator
+LibreHabit is built and maintained with a focus on freedom, privacy, and simplicity, with no ads, paywalls, or data collection.
+If you find this project helpful, consider supporting its development.
+
+Bitcoin (BTC): 35k63G5qH3q2y7ssYyrDPXRSkYm5eB5Fc3
+
+Every donation helps keep LibreHabit independent and open for everyone. Thank you for your support!
