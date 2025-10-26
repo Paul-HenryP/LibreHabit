@@ -35,6 +35,7 @@ import com.example.librehabit.ui.settings.SettingsViewModel
 import com.example.librehabit.ui.settings.SettingsViewModelFactory
 import com.example.librehabit.ui.theme.LibreHabitTheme
 import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.*
 
 val BarChart = materialIcon(name = "CustomBarChart") {
@@ -235,7 +236,7 @@ fun LibreHabitScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Divider()
+            HorizontalDivider()
 
             Text(
                 "History",
@@ -282,9 +283,9 @@ fun HistoryItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = formattedDate)
-        Text(text = "${String.format("%.1f", weightInSelectedUnit)} ${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"}", style = MaterialTheme.typography.bodyLarge)
+        Text(text = "${String.format(Locale.US, "%.1f", weightInSelectedUnit)} ${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"}", style = MaterialTheme.typography.bodyLarge)
         if (bmi > 0) {
-            Text(text = "BMI: ${String.format("%.1f", bmi)}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "BMI: ${String.format(Locale.US, "%.1f", bmi)}", style = MaterialTheme.typography.bodyLarge)
         }
         Row {
             IconButton(onClick = onEdit) {

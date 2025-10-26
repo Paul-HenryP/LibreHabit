@@ -1,6 +1,5 @@
 package com.example.librehabit
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,7 +23,7 @@ import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,7 +69,7 @@ fun GraphScreen(
 
     val startAxisValueFormatter =
         AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
-            String.format("%.1f", value)
+            String.format(Locale.US, "%.1f", value)
         }
 
     Scaffold(
