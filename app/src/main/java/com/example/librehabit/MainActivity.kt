@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
             val unitSystem by settingsViewModel.unitSystem.collectAsState()
+            val height by settingsViewModel.height.collectAsState()
 
             LibreHabitTheme(darkTheme = isDarkMode ?: isSystemInDarkTheme()) {
                 Surface(
@@ -88,7 +89,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToSettings = { navController.navigate("settings") },
                                 onDeleteEntry = { entry -> weightViewModel.deleteEntry(entry) },
                                 onEditEntry = { entry -> weightViewModel.editEntry(entry) },
-                                unitSystem = unitSystem
+                                unitSystem = unitSystem,
+                                height = height,
+                                calculateBmi = { weight, height -> weightViewModel.calculateBmi(weight, height) }
                             )
                         }
                         composable("settings") {
@@ -97,6 +100,8 @@ class MainActivity : ComponentActivity() {
                                 onDarkModeChange = { settingsViewModel.setDarkMode(it) },
                                 unitSystem = unitSystem,
                                 onUnitSystemChange = { settingsViewModel.setUnitSystem(it) },
+                                height = height,
+                                onHeightChange = { settingsViewModel.setHeight(it) },
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }
@@ -115,7 +120,9 @@ fun LibreHabitScreen(
     onNavigateToSettings: () -> Unit,
     onDeleteEntry: (WeightEntry) -> Unit,
     onEditEntry: (WeightEntry) -> Unit,
-    unitSystem: UnitSystem
+    unitSystem: UnitSystem,
+    height: Float,
+    calculateBmi: (Float, Float) -> Float
 ) {
     var weightInput by remember { mutableStateOf("") }
     var editingEntry by remember { mutableStateOf<WeightEntry?>(null) }
@@ -195,7 +202,9 @@ fun LibreHabitScreen(
                         entry = entry,
                         onDelete = { onDeleteEntry(entry) },
                         onEdit = { editingEntry = entry },
-                        unitSystem = unitSystem
+                        unitSystem = unitSystem,
+                        height = height,
+                        calculateBmi = calculateBmi
                     )
                 }
             }
@@ -208,12 +217,15 @@ fun HistoryItem(
     entry: WeightEntry,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    unitSystem: UnitSystem
+    unitSystem: UnitSystem,
+    height: Float,
+    calculateBmi: (Float, Float) -> Float
 ) {
     val formattedDate = remember(entry.date) {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(entry.date)
     }
     val weightInSelectedUnit = if (unitSystem == UnitSystem.IMPERIAL) entry.weight * 2.20462f else entry.weight
+    val bmi = if (height > 0) calculateBmi(entry.weight, height) else 0f
 
     Row(
         modifier = Modifier
@@ -224,6 +236,9 @@ fun HistoryItem(
     ) {
         Text(text = formattedDate)
         Text(text = "${String.format("%.1f", weightInSelectedUnit)} ${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"}", style = MaterialTheme.typography.bodyLarge)
+        if (bmi > 0) {
+            Text(text = "BMI: ${String.format("%.1f", bmi)}", style = MaterialTheme.typography.bodyLarge)
+        }
         Row {
             IconButton(onClick = onEdit) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit")
@@ -295,7 +310,9 @@ fun DefaultPreview() {
             onNavigateToSettings = {},
             onDeleteEntry = {},
             onEditEntry = {},
-            unitSystem = UnitSystem.METRIC
+            unitSystem = UnitSystem.METRIC,
+            height = 180f,
+            calculateBmi = { _, _ -> 23.3f }
         )
     }
 }

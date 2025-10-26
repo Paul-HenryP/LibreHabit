@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.librehabit.UnitSystem
@@ -20,6 +21,7 @@ class UserDataStore(context: Context) {
     companion object {
         val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
         val UNIT_SYSTEM = stringPreferencesKey("unit_system")
+        val HEIGHT = floatPreferencesKey("height")
     }
 
     val isDarkMode: Flow<Boolean?> = dataStore.data.map { preferences ->
@@ -43,6 +45,16 @@ class UserDataStore(context: Context) {
     suspend fun setUnitSystem(unitSystem: UnitSystem) {
         dataStore.edit { preferences ->
             preferences[UNIT_SYSTEM] = unitSystem.name
+        }
+    }
+
+    val height: Flow<Float> = dataStore.data.map { preferences ->
+        preferences[HEIGHT] ?: 0f
+    }
+
+    suspend fun setHeight(height: Float) {
+        dataStore.edit { preferences ->
+            preferences[HEIGHT] = height
         }
     }
 }

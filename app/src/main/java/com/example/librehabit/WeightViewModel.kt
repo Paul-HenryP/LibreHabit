@@ -37,6 +37,12 @@ class WeightViewModel(private val database: AppDatabase) : ViewModel() {
             database.weightDao().update(entry)
         }
     }
+
+    fun calculateBmi(weightInKg: Float, heightInCm: Float): Float {
+        if (heightInCm <= 0) return 0f
+        val heightInM = heightInCm / 100
+        return weightInKg / (heightInM * heightInM)
+    }
 }
 
 class WeightViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

@@ -38,6 +38,19 @@ class SettingsViewModel(private val userDataStore: UserDataStore) : ViewModel() 
             userDataStore.setUnitSystem(unitSystem)
         }
     }
+
+    val height: StateFlow<Float> = userDataStore.height
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0f
+        )
+
+    fun setHeight(height: Float) {
+        viewModelScope.launch {
+            userDataStore.setHeight(height)
+        }
+    }
 }
 
 class SettingsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
