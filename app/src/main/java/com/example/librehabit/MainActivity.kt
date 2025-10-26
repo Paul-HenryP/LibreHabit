@@ -1,9 +1,12 @@
 package com.example.librehabit
 
+import android.app.DatePickerDialog
 import android.os.Bundle
+import android.widget.DatePicker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,7 +44,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -52,6 +57,7 @@ import com.example.librehabit.ui.settings.SettingsViewModel
 import com.example.librehabit.ui.settings.SettingsViewModelFactory
 import com.example.librehabit.ui.theme.LibreHabitTheme
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -83,8 +89,8 @@ class MainActivity : ComponentActivity() {
                             val entries by weightViewModel.allEntries.collectAsState()
                             LibreHabitScreen(
                                 entries = entries,
-                                onSaveWeight = { weight ->
-                                    weightViewModel.saveWeight(weight)
+                                onSaveWeight = { weight, date ->
+                                    weightViewModel.saveWeight(weight, date)
                                 },
                                 onNavigateToSettings = { navController.navigate("settings") },
                                 onDeleteEntry = { entry -> weightViewModel.deleteEntry(entry) },
@@ -116,7 +122,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LibreHabitScreen(
     entries: List<WeightEntry>,
-    onSaveWeight: (Float) -> Unit,
+    onSaveWeight: (Float, Date) -> Unit,
     onNavigateToSettings: () -> Unit,
     onDeleteEntry: (WeightEntry) -> Unit,
     onEditEntry: (WeightEntry) -> Unit,
@@ -126,6 +132,27 @@ fun LibreHabitScreen(
 ) {
     var weightInput by remember { mutableStateOf("") }
     var editingEntry by remember { mutableStateOf<WeightEntry?>(null) }
+    var selectedDate by remember { mutableStateOf(Date()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val formattedDate = remember(selectedDate) {
+        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(selectedDate)
+    }
+
+    if (showDatePicker) {
+        val calendar = Calendar.getInstance().apply { time = selectedDate }
+        DatePickerDialog(
+            context,
+            { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+                calendar.set(year, month, dayOfMonth)
+                selectedDate = calendar.time
+                showDatePicker = false
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
 
     if (editingEntry != null) {
         EditWeightDialog(
@@ -172,6 +199,14 @@ fun LibreHabitScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Date: $formattedDate",
+                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable { showDatePicker = true }
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -179,8 +214,9 @@ fun LibreHabitScreen(
                     val weight = weightInput.toFloatOrNull()
                     if (weight != null && weight > 0) {
                         val weightInKg = if (unitSystem == UnitSystem.IMPERIAL) weight / 2.20462f else weight
-                        onSaveWeight(weightInKg)
+                        onSaveWeight(weightInKg, selectedDate)
                         weightInput = ""
+                        selectedDate = Date()
                     }
                 },
                 enabled = weightInput.toFloatOrNull()?.let { it > 0 } ?: false
@@ -258,22 +294,52 @@ fun EditWeightDialog(
     unitSystem: UnitSystem
 ) {
     var newWeight by remember { mutableStateOf(if (unitSystem == UnitSystem.IMPERIAL) (entry.weight * 2.20462f).toString() else entry.weight.toString()) }
+    var newDate by remember { mutableStateOf(entry.date) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val formattedDate = remember(newDate) {
+        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(newDate)
+    }
+
+    if (showDatePicker) {
+        val calendar = Calendar.getInstance().apply { time = newDate }
+        DatePickerDialog(
+            context,
+            { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+                calendar.set(year, month, dayOfMonth)
+                newDate = calendar.time
+                showDatePicker = false
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Edit Weight") },
+        title = { Text("Edit Entry") },
         text = {
-            OutlinedTextField(
-                value = newWeight,
-                onValueChange = { newValue ->
-                    if (newValue.all { it.isDigit() || it == '.' }) {
-                        newWeight = newValue
-                    }
-                },
-                label = { Text("Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
+            Column {
+                OutlinedTextField(
+                    value = newWeight,
+                    onValueChange = { newValue ->
+                        if (newValue.all { it.isDigit() || it == '.' }) {
+                            newWeight = newValue
+                        }
+                    },
+                    label = { Text("Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Date: $formattedDate",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable { showDatePicker = true }
+                )
+            }
         },
         confirmButton = {
             TextButton(
@@ -281,7 +347,7 @@ fun EditWeightDialog(
                     val weight = newWeight.toFloatOrNull()
                     if (weight != null && weight > 0) {
                         val weightInKg = if (unitSystem == UnitSystem.IMPERIAL) weight / 2.20462f else weight
-                        onSave(entry.copy(weight = weightInKg))
+                        onSave(entry.copy(weight = weightInKg, date = newDate))
                     }
                 }
             ) {
@@ -306,7 +372,7 @@ fun DefaultPreview() {
         )
         LibreHabitScreen(
             entries = sampleEntries,
-            onSaveWeight = {},
+            onSaveWeight = { _, _ -> },
             onNavigateToSettings = {},
             onDeleteEntry = {},
             onEditEntry = {},

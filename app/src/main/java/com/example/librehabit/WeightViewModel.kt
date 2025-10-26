@@ -19,9 +19,9 @@ class WeightViewModel(private val database: AppDatabase) : ViewModel() {
             initialValue = emptyList()
         )
 
-    fun saveWeight(weightValue: Float) {
+    fun saveWeight(weightValue: Float, date: Date) {
         viewModelScope.launch {
-            val newEntry = WeightEntry(weight = weightValue, date = Date())
+            val newEntry = WeightEntry(weight = weightValue, date = date)
             database.weightDao().insert(newEntry)
         }
     }
