@@ -1,0 +1,33 @@
+# Gradle files
+.gradle/
+build/
+
+# Android Studio files
+.idea/
+*.iml
+local.properties
+
+# Mac files
+.DS_Store
+
+# Captures
+.cxx/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google services
+google-services.json
+
+# Firebase
+firebase.json
+
+# Crashlytics
+com_crashlytics_export_strings.xml
+
+# Proguard
+proguard/
+
+# Log files
+*.log
