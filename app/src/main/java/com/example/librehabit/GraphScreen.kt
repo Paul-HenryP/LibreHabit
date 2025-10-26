@@ -1,5 +1,6 @@
 package com.example.librehabit
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,8 @@ import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
+import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
@@ -32,6 +35,10 @@ fun GraphScreen(
 ) {
     val chartModelProducer = remember { ChartEntryModelProducer() }
 
+    // This is the fix. Call m3ChartStyle() with no parameters.
+    // It will automatically use the correct light/dark theme from MaterialTheme.
+    val chartStyle = m3ChartStyle()
+
     LaunchedEffect(entries, unitSystem) {
         val chartEntries = entries
             .reversed()
@@ -43,15 +50,14 @@ fun GraphScreen(
         chartModelProducer.setEntries(chartEntries)
     }
 
-    // X-axis formatter: shows fewer dates dynamically
     val bottomAxisValueFormatter =
         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
             val totalEntries = entries.size
             val spacing = when {
-                totalEntries <= 5 -> 1       // show all
-                totalEntries <= 10 -> 2      // show every 2nd
-                totalEntries <= 20 -> 3      // show every 3rd
-                else -> 5                    // show every 5th
+                totalEntries <= 5 -> 1
+                totalEntries <= 10 -> 2
+                totalEntries <= 20 -> 3
+                else -> 5
             }
 
             val index = value.toInt()
@@ -62,7 +68,6 @@ fun GraphScreen(
             } else ""
         }
 
-    // Y-axis formatter: 1 decimal place + fewer labels
     val startAxisValueFormatter =
         AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
             String.format("%.1f", value)
@@ -88,24 +93,26 @@ fun GraphScreen(
                     style = MaterialTheme.typography.bodyLarge
                 )
             } else {
-                Chart(
-                    chart = lineChart(),
-                    chartModelProducer = chartModelProducer,
-                    startAxis = rememberStartAxis(
-                        title = "Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})",
-                        valueFormatter = startAxisValueFormatter,
-                        itemPlacer = AxisItemPlacer.Vertical.default(
-                            maxItemCount = 5
-                        )
-                    ),
-                    bottomAxis = rememberBottomAxis(
-                        valueFormatter = bottomAxisValueFormatter,
-                        guideline = null
-                    ),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                )
+                ProvideChartStyle(chartStyle = chartStyle) {
+                    Chart(
+                        chart = lineChart(),
+                        chartModelProducer = chartModelProducer,
+                        startAxis = rememberStartAxis(
+                            title = "Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})",
+                            valueFormatter = startAxisValueFormatter,
+                            itemPlacer = AxisItemPlacer.Vertical.default(
+                                maxItemCount = 5
+                            )
+                        ),
+                        bottomAxis = rememberBottomAxis(
+                            valueFormatter = bottomAxisValueFormatter,
+                            guideline = null
+                        ),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    )
+                }
             }
         }
     }
