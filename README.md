@@ -11,6 +11,7 @@
 - Custom habit tracking (e.g. sleep, exercise, mood)
 - Reminders and streaks
 - Data export/import
+- Themes
 
 ## Installation
 APK coming soon! Stay tuned for the first release.
