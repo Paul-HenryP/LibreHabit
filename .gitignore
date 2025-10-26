@@ -31,3 +31,12 @@ proguard/
 
 # Log files
 *.log
+
+# Keystore files
+*.jks
+keystore.properties
+Keystore
+keystore
+
+# Generated release builds
+/app/release
