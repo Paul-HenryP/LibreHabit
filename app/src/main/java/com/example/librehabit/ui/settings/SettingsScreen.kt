@@ -175,7 +175,7 @@ fun SettingsScreen(
                 }
             )
             val context = LocalContext.current
-            val btcAddress = "bc1qexampleaddress0000000000000000000000000"
+            val btcAddress = "35k63G5qH3q2y7ssYyrDPXRSkYm5eB5Fc3"
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             ClickableInfoRow(
                 text = "Support the Creator",

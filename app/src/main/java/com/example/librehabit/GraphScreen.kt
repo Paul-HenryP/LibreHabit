@@ -33,9 +33,6 @@ fun GraphScreen(
     onNavigateUp: () -> Unit
 ) {
     val chartModelProducer = remember { ChartEntryModelProducer() }
-
-    // This is the fix. Call m3ChartStyle() with no parameters.
-    // It will automatically use the correct light/dark theme from MaterialTheme.
     val chartStyle = m3ChartStyle()
 
     LaunchedEffect(entries, unitSystem) {
@@ -100,7 +97,7 @@ fun GraphScreen(
                             title = "Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})",
                             valueFormatter = startAxisValueFormatter,
                             itemPlacer = AxisItemPlacer.Vertical.default(
-                                maxItemCount = 5
+                                maxItemCount = 10
                             )
                         ),
                         bottomAxis = rememberBottomAxis(
