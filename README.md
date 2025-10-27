@@ -2,19 +2,35 @@
 
 **LibreHabit** is an open-source, ad-free app for tracking your weight and other habits. Built with privacy and simplicity in mind, it helps you stay consistent and mindful of your progress.
 
-## Features (Initial Version)
-- Weight tracking with history and graphs
+## Features (v1.0)
+- Weight Tracking: Add, edit, and delete entries for any date.
+- BMI Calculation: Automatically see your BMI with each entry.
+- Customization:
+  - Metric ( kg/cm ) and Imperial (lbs/in) unit systems.
+  - Light, Dark, and System-default themes.
 - Clean, minimal UI
 - No ads, no tracking
 
 ## Upcoming Features
+- Progress Graph: Visualize your weight history with a line chart.
 - Custom habit tracking (e.g. sleep, exercise, mood)
 - Reminders and streaks
 - Data export/import
 - Themes
 
+### Permissions Explained
+
+LibreHabit is designed to work offline, but it requires one permission for an optional feature:
+
+*   **`android.permission.INTERNET`**
+    *   **Purpose:** This permission is used **exclusively** for the "Check for Updates" feature in the settings menu.
+    *   **How it works:** When you tap the button, the app makes a single, anonymous request to the GitHub API to see if a new release tag exists.
+    *   **Privacy Guarantee:** This feature is **optional and user-initiated**. No personal data, analytics, or usage information is ever collected or transmitted. Your data never leaves your device.
+
+
 ## Installation
-APK coming soon! Stay tuned for the first release.
+You can download the latest version from the GitHub Releases page.
+Simply download the .apk file and install it on your Android device.
 
 ## Philosophy
 - **Libre**: Free as in freedom. No ads, no lock-in.

@@ -107,6 +107,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("settings") {
+                            val updateState by settingsViewModel.updateState.collectAsState()
                             SettingsScreen(
                                 isDarkMode = isDarkMode,
                                 onDarkModeChange = { settingsViewModel.setDarkMode(it) },
@@ -114,6 +115,9 @@ class MainActivity : ComponentActivity() {
                                 onUnitSystemChange = { settingsViewModel.setUnitSystem(it) },
                                 height = height,
                                 onHeightChange = { settingsViewModel.setHeight(it) },
+                                updateState = updateState,
+                                onCheckForUpdates = { settingsViewModel.checkForUpdates() },
+                                onResetUpdateState = { settingsViewModel.resetUpdateState() },
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }
