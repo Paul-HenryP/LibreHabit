@@ -1,8 +1,12 @@
 package com.example.librehabit.ui.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,10 +21,12 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +61,7 @@ fun SettingsScreen(
     updateState: UpdateState,
     onCheckForUpdates: () -> Unit,
     onResetUpdateState: () -> Unit,
+    appVersion: String,
     onNavigateUp: () -> Unit
 ) {
     var heightInput by remember(height) { mutableStateOf(height.toString()) }
@@ -70,7 +77,7 @@ fun SettingsScreen(
                 Toast.makeText(context, "Error checking for updates: ${updateState.message}", Toast.LENGTH_LONG).show()
                 onResetUpdateState()
             }
-            else -> { /* No action needed for other states */ }
+            else -> {  }
         }
     }
 
@@ -150,9 +157,50 @@ fun SettingsScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text("About", style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = "LibreHabit is a simple, open-source, and ad-free habit tracker built with privacy in mind.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            ClickableInfoRow(
+                text = "Source Code",
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Paul-HenryP/LibreHabit"))
+                    context.startActivity(intent)
+                }
+            )
+            val context = LocalContext.current
+            val btcAddress = "bc1qexampleaddress0000000000000000000000000"
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            ClickableInfoRow(
+                text = "Support the Creator",
+                onClick = {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("BTC Address", btcAddress)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(
+                        context,
+                        "BTC address copied to clipboard:\n$btcAddress",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("App Version", style = MaterialTheme.typography.bodyLarge)
+                Text(appVersion, style = MaterialTheme.typography.bodyLarge)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = onCheckForUpdates,
                 enabled = updateState !is UpdateState.Checking,
@@ -171,6 +219,28 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ClickableInfoRow(
+    text: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = text, style = MaterialTheme.typography.bodyLarge)
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
     }
 }
 

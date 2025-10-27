@@ -118,7 +118,8 @@ class MainActivity : ComponentActivity() {
                                 updateState = updateState,
                                 onCheckForUpdates = { settingsViewModel.checkForUpdates() },
                                 onResetUpdateState = { settingsViewModel.resetUpdateState() },
-                                onNavigateUp = { navController.popBackStack() }
+                                onNavigateUp = { navController.popBackStack() },
+                                appVersion = BuildConfig.VERSION_NAME
                             )
                         }
                     }
@@ -263,7 +264,6 @@ fun LibreHabitScreen(
     }
 }
 
-// ... (Rest of the file is unchanged and correct)
 @Composable
 fun HistoryItem(
     entry: WeightEntry,
