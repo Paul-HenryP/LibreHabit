@@ -41,7 +41,7 @@ Simply download the .apk file and install it on your Android device.
 MIT License
 
 ## 🤝 Contributing
-Feel free to open issues or submit pull requests. See `CONTRIBUTING.md` for guidelines.
+Feel free to open issues or submit pull requests. See [`CONTRIBUTING.md`](https://github.com/Paul-HenryP/LibreHabit/blob/main/CONTRIBUTING.md) for guidelines.
 
 ## Support the Creator
 LibreHabit is built and maintained with a focus on freedom, privacy, and simplicity, with no ads, paywalls, or data collection.
