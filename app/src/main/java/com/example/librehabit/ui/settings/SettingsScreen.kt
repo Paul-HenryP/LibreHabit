@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState // <-- 1. IMPORT
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll // <-- 1. IMPORT
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
@@ -66,6 +68,7 @@ fun SettingsScreen(
 ) {
     var heightInput by remember(height) { mutableStateOf(height.toString()) }
     val context = LocalContext.current
+    val scrollState = rememberScrollState() // <-- 2. CREATE STATE
 
     LaunchedEffect(updateState) {
         when (updateState) {
@@ -109,6 +112,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
+                .verticalScroll(scrollState)
         ) {
             Text("Theme", style = MaterialTheme.typography.titleLarge)
             Column {
@@ -174,7 +178,6 @@ fun SettingsScreen(
                     context.startActivity(intent)
                 }
             )
-            val context = LocalContext.current
             val btcAddress = "35k63G5qH3q2y7ssYyrDPXRSkYm5eB5Fc3"
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             ClickableInfoRow(
