@@ -7,12 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.librehabit.BuildConfig
 import com.example.librehabit.UnitSystem
 import com.example.librehabit.data.UserDataStore
+import com.example.librehabit.model.AppTheme
+import com.example.librehabit.model.DarkModePreference
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -33,16 +31,29 @@ sealed class UpdateState {
 
 class SettingsViewModel(private val userDataStore: UserDataStore) : ViewModel() {
 
-    val isDarkMode: StateFlow<Boolean?> = userDataStore.isDarkMode
+    val appTheme: StateFlow<AppTheme> = userDataStore.appTheme
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = null
+            initialValue = AppTheme.PURPLE
         )
 
-    fun setDarkMode(isDarkMode: Boolean?) {
+    fun setAppTheme(theme: AppTheme) {
         viewModelScope.launch {
-            userDataStore.setDarkMode(isDarkMode)
+            userDataStore.setAppTheme(theme)
+        }
+    }
+
+    val darkModePreference: StateFlow<DarkModePreference> = userDataStore.darkModePreference
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = DarkModePreference.SYSTEM
+        )
+
+    fun setDarkModePreference(preference: DarkModePreference) {
+        viewModelScope.launch {
+            userDataStore.setDarkModePreference(preference)
         }
     }
 
