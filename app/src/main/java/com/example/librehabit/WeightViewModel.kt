@@ -1,13 +1,18 @@
 package com.example.librehabit
 
 import android.app.Application
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 class WeightViewModel(private val database: AppDatabase) : ViewModel() {
@@ -38,10 +43,40 @@ class WeightViewModel(private val database: AppDatabase) : ViewModel() {
         }
     }
 
+    fun deleteAllData() {
+        viewModelScope.launch {
+            database.weightDao().deleteAll()
+        }
+    }
+
     fun calculateBmi(weightInKg: Float, heightInCm: Float): Float {
         if (heightInCm <= 0) return 0f
         val heightInM = heightInCm / 100
         return weightInKg / (heightInM * heightInM)
+    }
+
+    fun exportToCsv(uri: Uri, contentResolver: ContentResolver) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val entries = database.weightDao().getAllEntries().first()
+                val csvBuilder = StringBuilder()
+                csvBuilder.append("date,weight_kg\n")
+
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+                entries.forEach { entry ->
+                    val dateStr = dateFormat.format(entry.date)
+                    csvBuilder.append("$dateStr,${entry.weight}\n")
+                }
+
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(csvBuilder.toString().toByteArray())
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
 

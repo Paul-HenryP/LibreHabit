@@ -12,12 +12,15 @@ interface WeightDao {
     @Insert
     suspend fun insert(entry: WeightEntry)
 
-    @Update
-    suspend fun update(entry: WeightEntry)
+    @Query("SELECT * FROM weight_entries ORDER BY date DESC")
+    fun getAllEntries(): Flow<List<WeightEntry>>
 
     @Delete
     suspend fun delete(entry: WeightEntry)
 
-    @Query("SELECT * FROM weight_entries ORDER BY date DESC")
-    fun getAllEntries(): Flow<List<WeightEntry>>
+    @Update
+    suspend fun update(entry: WeightEntry)
+
+    @Query("DELETE FROM weight_entries")
+    suspend fun deleteAll()
 }
