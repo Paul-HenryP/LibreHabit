@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,13 +15,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState // <-- 1. IMPORT
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll // <-- 1. IMPORT
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
@@ -46,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -68,7 +72,7 @@ fun SettingsScreen(
 ) {
     var heightInput by remember(height) { mutableStateOf(height.toString()) }
     val context = LocalContext.current
-    val scrollState = rememberScrollState() // <-- 2. CREATE STATE
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(updateState) {
         when (updateState) {
@@ -88,6 +92,7 @@ fun SettingsScreen(
         UpdateAvailableDialog(
             latestVersion = updateState.latestVersion,
             downloadUrl = updateState.downloadUrl,
+            releaseNotes = updateState.releaseNotes,
             onDismiss = onResetUpdateState
         )
     }
@@ -251,13 +256,38 @@ private fun ClickableInfoRow(
 private fun UpdateAvailableDialog(
     latestVersion: String,
     downloadUrl: String,
+    releaseNotes: String,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val dialogScrollState = rememberScrollState()
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Update Available") },
-        text = { Text("Version $latestVersion is available. You can download it from the official GitHub releases page.") },
+        text = {
+            Column {
+                Text(
+                    text = "Version $latestVersion is available. Here's what's new:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .verticalScroll(dialogScrollState)
+                        .padding(8.dp)
+                ) {
+                    Text(
+                        text = releaseNotes,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        },
         confirmButton = {
             TextButton(
                 onClick = {
