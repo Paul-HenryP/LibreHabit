@@ -6,9 +6,21 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,17 +29,42 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.librehabit.UnitSystem
 import com.example.librehabit.model.AppTheme
 import com.example.librehabit.model.DarkModePreference
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,11 +81,25 @@ fun SettingsScreen(
     onCheckForUpdates: () -> Unit,
     onResetUpdateState: () -> Unit,
     appVersion: String,
+    onExportData: (Uri) -> Unit,
+    // VVV NEW: Callback for deletion VVV
+    onDeleteAllData: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
     var heightInput by remember(height) { mutableStateOf(if (height > 0) height.toString() else "") }
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let {
+            onExportData(it)
+            Toast.makeText(context, "Exporting data...", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LaunchedEffect(updateState) {
         when (updateState) {
@@ -70,6 +121,17 @@ fun SettingsScreen(
             downloadUrl = updateState.downloadUrl,
             releaseNotes = updateState.releaseNotes,
             onDismiss = onResetUpdateState
+        )
+    }
+
+    if (showDeleteDialog) {
+        DeleteConfirmationDialog(
+            onConfirm = {
+                onDeleteAllData()
+                showDeleteDialog = false
+                Toast.makeText(context, "All data deleted.", Toast.LENGTH_SHORT).show()
+            },
+            onDismiss = { showDeleteDialog = false }
         )
     }
 
@@ -150,6 +212,30 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            Text("Data Management", style = MaterialTheme.typography.titleLarge)
+            ClickableInfoRow(
+                text = "Export Data to CSV",
+                icon = Icons.Default.Download,
+                onClick = {
+                    val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+                    exportLauncher.launch("librehabit_data_$dateStr.csv")
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Danger Zone", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+            Button(
+                onClick = { showDeleteDialog = true },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            ) {
+                Icon(Icons.Default.DeleteForever, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Delete All Data")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text("About", style = MaterialTheme.typography.titleLarge)
             Text(
                 text = "LibreHabit is a simple, open-source, and ad-free habit tracker built with privacy in mind.",
@@ -160,6 +246,7 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             ClickableInfoRow(
                 text = "Source Code",
+                icon = Icons.AutoMirrored.Filled.OpenInNew,
                 onClick = {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Paul-HenryP/LibreHabit"))
                     context.startActivity(intent)
@@ -169,6 +256,7 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             ClickableInfoRow(
                 text = "Support the Creator",
+                icon = null,
                 onClick = {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("BTC Address", btcAddress)
@@ -213,8 +301,54 @@ fun SettingsScreen(
 }
 
 @Composable
+private fun DeleteConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    var confirmationInput by remember { mutableStateOf("") }
+    val confirmationString = "Delete my data"
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete All Data") },
+        text = {
+            Column {
+                Text(
+                    text = "This action cannot be undone. To confirm, please type \"$confirmationString\" below:",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = confirmationInput,
+                    onValueChange = { confirmationInput = it },
+                    label = { Text("Confirmation") },
+                    placeholder = { Text(confirmationString) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = confirmationInput == confirmationString,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
 private fun ClickableInfoRow(
     text: String,
+    icon: ImageVector?,
     onClick: () -> Unit
 ) {
     Row(
@@ -226,11 +360,13 @@ private fun ClickableInfoRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = text, style = MaterialTheme.typography.bodyLarge)
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
-        )
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 

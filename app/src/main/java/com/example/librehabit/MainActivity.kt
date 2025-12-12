@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -53,6 +54,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+                    val context = LocalContext.current
+
                     NavHost(navController = navController, startDestination = "main") {
                         composable("main") {
                             val entries by weightViewModel.allEntries.collectAsState()
@@ -93,6 +96,12 @@ class MainActivity : ComponentActivity() {
                                 onCheckForUpdates = { settingsViewModel.checkForUpdates() },
                                 onResetUpdateState = { settingsViewModel.resetUpdateState() },
                                 appVersion = BuildConfig.VERSION_NAME,
+                                onExportData = { uri ->
+                                    weightViewModel.exportToCsv(uri, context.contentResolver)
+                                },
+                                onDeleteAllData = {
+                                    weightViewModel.deleteAllData()
+                                },
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }
