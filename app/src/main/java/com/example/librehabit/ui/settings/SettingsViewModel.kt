@@ -22,7 +22,11 @@ import java.net.URL
 sealed class UpdateState {
     object Idle : UpdateState()
     object Checking : UpdateState()
-    data class UpdateAvailable(val latestVersion: String, val downloadUrl: String) : UpdateState()
+    data class UpdateAvailable(
+        val latestVersion: String,
+        val downloadUrl: String,
+        val releaseNotes: String
+    ) : UpdateState()
     object UpToDate : UpdateState()
     data class Error(val message: String) : UpdateState()
 }
@@ -81,7 +85,8 @@ class SettingsViewModel(private val userDataStore: UserDataStore) : ViewModel() 
 
                 if (isNewerVersion(current = currentVersionName, latest = latestVersionName)) {
                     val downloadUrl = latestRelease.getString("html_url")
-                    _updateState.value = UpdateState.UpdateAvailable(latestVersionName, downloadUrl)
+                    val releaseNotes = latestRelease.getString("body")
+                    _updateState.value = UpdateState.UpdateAvailable(latestVersionName, downloadUrl, releaseNotes)
                 } else {
                     _updateState.value = UpdateState.UpToDate
                 }
