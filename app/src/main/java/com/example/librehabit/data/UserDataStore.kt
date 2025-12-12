@@ -2,13 +2,11 @@ package com.example.librehabit.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.librehabit.UnitSystem
+import com.example.librehabit.model.AppTheme
+import com.example.librehabit.model.DarkModePreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -19,22 +17,29 @@ class UserDataStore(context: Context) {
     private val dataStore = context.dataStore
 
     companion object {
-        val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
+        val APP_THEME = stringPreferencesKey("app_theme")
+        val DARK_MODE_PREFERENCE = stringPreferencesKey("dark_mode_preference")
         val UNIT_SYSTEM = stringPreferencesKey("unit_system")
         val HEIGHT = floatPreferencesKey("height")
     }
 
-    val isDarkMode: Flow<Boolean?> = dataStore.data.map { preferences ->
-        preferences[IS_DARK_MODE]
+    val appTheme: Flow<AppTheme> = dataStore.data.map { preferences ->
+        AppTheme.valueOf(preferences[APP_THEME] ?: AppTheme.PURPLE.name)
     }
 
-    suspend fun setDarkMode(isDarkMode: Boolean?) {
+    suspend fun setAppTheme(theme: AppTheme) {
         dataStore.edit { preferences ->
-            if (isDarkMode == null) {
-                preferences.remove(IS_DARK_MODE)
-            } else {
-                preferences[IS_DARK_MODE] = isDarkMode
-            }
+            preferences[APP_THEME] = theme.name
+        }
+    }
+
+    val darkModePreference: Flow<DarkModePreference> = dataStore.data.map { preferences ->
+        DarkModePreference.valueOf(preferences[DARK_MODE_PREFERENCE] ?: DarkModePreference.SYSTEM.name)
+    }
+
+    suspend fun setDarkModePreference(preference: DarkModePreference) {
+        dataStore.edit { preferences ->
+            preferences[DARK_MODE_PREFERENCE] = preference.name
         }
     }
 
