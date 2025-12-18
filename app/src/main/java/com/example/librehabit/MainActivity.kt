@@ -99,6 +99,9 @@ class MainActivity : ComponentActivity() {
                                 onExportData = { uri ->
                                     weightViewModel.exportToCsv(uri, context.contentResolver)
                                 },
+                                onImportData = { uri ->
+                                    weightViewModel.importFromCsv(uri, context.contentResolver)
+                                },
                                 onDeleteAllData = {
                                     weightViewModel.deleteAllData()
                                 },
