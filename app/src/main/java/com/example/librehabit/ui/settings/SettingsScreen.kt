@@ -31,6 +31,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -82,22 +83,29 @@ fun SettingsScreen(
     onResetUpdateState: () -> Unit,
     appVersion: String,
     onExportData: (Uri) -> Unit,
-    // VVV NEW: Callback for deletion VVV
+    onImportData: (Uri) -> Unit,
     onDeleteAllData: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
     var heightInput by remember(height) { mutableStateOf(if (height > 0) height.toString() else "") }
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-
     var showDeleteDialog by remember { mutableStateOf(false) }
-
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
         uri?.let {
             onExportData(it)
             Toast.makeText(context, "Exporting data...", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            onImportData(it)
+            Toast.makeText(context, "Importing data...", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -219,6 +227,14 @@ fun SettingsScreen(
                 onClick = {
                     val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
                     exportLauncher.launch("librehabit_data_$dateStr.csv")
+                }
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            ClickableInfoRow(
+                text = "Import Data from CSV",
+                icon = Icons.Default.Upload,
+                onClick = {
+                    importLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
                 }
             )
 
