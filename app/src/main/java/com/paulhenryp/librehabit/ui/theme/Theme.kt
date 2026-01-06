@@ -1,11 +1,11 @@
-package com.example.librehabit.ui.theme
+package com.paulhenryp.librehabit.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.example.librehabit.model.AppTheme
+import com.paulhenryp.librehabit.model.AppTheme
 
 private val DarkPurpleColorScheme = darkColorScheme(
     primary = Purple80,

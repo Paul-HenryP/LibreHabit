@@ -1,4 +1,4 @@
-package com.example.librehabit.ui.theme
+package com.paulhenryp.librehabit.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

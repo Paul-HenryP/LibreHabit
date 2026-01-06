@@ -1,10 +1,10 @@
-package com.example.librehabit
+package com.paulhenryp.librehabit
 
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.example.librehabit.data.UserDataStore
+import com.paulhenryp.librehabit.data.UserDataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first

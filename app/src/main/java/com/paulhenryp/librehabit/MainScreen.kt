@@ -1,4 +1,4 @@
-package com.example.librehabit
+package com.paulhenryp.librehabit
 
 import android.app.DatePickerDialog
 import android.widget.DatePicker
