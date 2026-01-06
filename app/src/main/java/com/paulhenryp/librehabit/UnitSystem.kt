@@ -1,4 +1,4 @@
-package com.example.librehabit
+package com.paulhenryp.librehabit
 
 enum class UnitSystem {
     METRIC,

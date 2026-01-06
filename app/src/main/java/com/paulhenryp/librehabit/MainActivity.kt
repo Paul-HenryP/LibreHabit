@@ -1,4 +1,4 @@
-package com.example.librehabit
+package com.paulhenryp.librehabit
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,11 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.librehabit.model.DarkModePreference
-import com.example.librehabit.ui.settings.SettingsScreen
-import com.example.librehabit.ui.settings.SettingsViewModel
-import com.example.librehabit.ui.settings.SettingsViewModelFactory
-import com.example.librehabit.ui.theme.LibreHabitTheme
+import com.paulhenryp.librehabit.model.DarkModePreference
+import com.paulhenryp.librehabit.ui.settings.SettingsScreen
+import com.paulhenryp.librehabit.ui.settings.SettingsViewModel
+import com.paulhenryp.librehabit.ui.settings.SettingsViewModelFactory
+import com.paulhenryp.librehabit.ui.theme.LibreHabitTheme
 
 class MainActivity : ComponentActivity() {
 

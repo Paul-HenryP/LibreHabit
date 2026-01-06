@@ -1,4 +1,4 @@
-package com.example.librehabit.ui.settings
+package com.paulhenryp.librehabit.ui.settings
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -60,9 +60,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.librehabit.UnitSystem
-import com.example.librehabit.model.AppTheme
-import com.example.librehabit.model.DarkModePreference
+import com.paulhenryp.librehabit.UnitSystem
+import com.paulhenryp.librehabit.model.AppTheme
+import com.paulhenryp.librehabit.model.DarkModePreference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

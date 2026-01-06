@@ -1,4 +1,4 @@
-package com.example.librehabit.model
+package com.paulhenryp.librehabit.model
 
 enum class AppTheme(val displayName: String) {
     PURPLE("Purple"),

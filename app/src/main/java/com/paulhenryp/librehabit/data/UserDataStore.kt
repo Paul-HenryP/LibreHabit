@@ -1,12 +1,12 @@
-package com.example.librehabit.data
+package com.paulhenryp.librehabit.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
-import com.example.librehabit.UnitSystem
-import com.example.librehabit.model.AppTheme
-import com.example.librehabit.model.DarkModePreference
+import com.paulhenryp.librehabit.UnitSystem
+import com.paulhenryp.librehabit.model.AppTheme
+import com.paulhenryp.librehabit.model.DarkModePreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

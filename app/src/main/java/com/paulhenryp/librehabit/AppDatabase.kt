@@ -1,4 +1,4 @@
-package com.example.librehabit
+package com.paulhenryp.librehabit
 
 import android.content.Context
 import androidx.room.Database

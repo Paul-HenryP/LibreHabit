@@ -1,14 +1,14 @@
-package com.example.librehabit.ui.settings
+package com.paulhenryp.librehabit.ui.settings
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.librehabit.BuildConfig
-import com.example.librehabit.UnitSystem
-import com.example.librehabit.data.UserDataStore
-import com.example.librehabit.model.AppTheme
-import com.example.librehabit.model.DarkModePreference
+import com.paulhenryp.librehabit.BuildConfig
+import com.paulhenryp.librehabit.UnitSystem
+import com.paulhenryp.librehabit.data.UserDataStore
+import com.paulhenryp.librehabit.model.AppTheme
+import com.paulhenryp.librehabit.model.DarkModePreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.example.librehabit
+package com.paulhenryp.librehabit
 
 import androidx.room.Dao
 import androidx.room.Delete
