@@ -4,14 +4,14 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.paulhenryp.librehabit.data.UserDataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -28,92 +28,87 @@ class WeightViewModelTest {
 
     private lateinit var database: AppDatabase
     private lateinit var viewModel: WeightViewModel
-    private lateinit var userDataStore: UserDataStore
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         val context = ApplicationProvider.getApplicationContext<Application>()
+
+        // Fix: Force Room to use the test dispatcher for transactions and queries.
+        // This ensures database operations don't run on a hidden background thread that escapes our test control.
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .setTransactionExecutor(testDispatcher.asExecutor())
+            .setQueryExecutor(testDispatcher.asExecutor())
             .allowMainThreadQueries()
             .build()
-        userDataStore = UserDataStore(context)
+
         viewModel = WeightViewModel(database)
     }
 
     @After
     fun tearDown() {
         database.close()
-        runBlocking {
-            userDataStore.setDarkMode(null)
-            userDataStore.setUnitSystem(UnitSystem.METRIC)
-            userDataStore.setHeight(0f)
-        }
         Dispatchers.resetMain()
     }
 
     @Test
-    fun saveWeight_shouldAddEntryToDatabase() = runBlocking {
+    fun saveWeight_shouldAddEntryToDatabase() = runTest(testDispatcher) {
         // Given
         val weightValue = 75.5f
+        val date = Date()
 
         // When
-        val job = launch {
-            viewModel.saveWeight(weightValue)
-        }
-        testDispatcher.scheduler.advanceUntilIdle()
-        job.join()
+        viewModel.saveWeight(weightValue, date)
+        
+        val allEntries = viewModel.allEntries.filter { it.isNotEmpty() }.first()
 
         // Then
-        val allEntries = viewModel.allEntries.first()
         assertEquals(1, allEntries.size)
         assertEquals(weightValue, allEntries[0].weight, 0.01f)
     }
 
     @Test
-    fun deleteEntry_shouldRemoveEntryFromDatabase() = runBlocking {
+    fun deleteEntry_shouldRemoveEntryFromDatabase() = runTest(testDispatcher) {
         // Given
-        val entry = WeightEntry(id = 1, weight = 75.5f, date = Date())
-        val job1 = launch {
-            viewModel.saveWeight(entry.weight)
-        }
-        testDispatcher.scheduler.advanceUntilIdle()
-        job1.join()
-        val entryToDelete = viewModel.allEntries.first()[0]
+        val entry = WeightEntry(weight = 75.5f, date = Date())
+        database.weightDao().insert(entry)
+
+        // Wait for the insertion to be reflected in the ViewModel
+        val savedEntries = viewModel.allEntries.filter { it.isNotEmpty() }.first()
+        val entryToDelete = savedEntries[0]
 
         // When
-        val job2 = launch {
-            viewModel.deleteEntry(entryToDelete)
-        }
-        testDispatcher.scheduler.advanceUntilIdle()
-        job2.join()
+        viewModel.deleteEntry(entryToDelete)
+
+        // Wait for the list to become empty again
+        val allEntries = viewModel.allEntries.filter { it.isEmpty() }.first()
 
         // Then
-        val allEntries = viewModel.allEntries.first()
         assertEquals(0, allEntries.size)
     }
 
     @Test
-    fun editEntry_shouldUpdateEntryInDatabase() = runBlocking {
+    fun editEntry_shouldUpdateEntryInDatabase() = runTest(testDispatcher) {
         // Given
-        val entry = WeightEntry(id = 1, weight = 75.5f, date = Date())
-        val job1 = launch {
-            viewModel.saveWeight(entry.weight)
-        }
-        testDispatcher.scheduler.advanceUntilIdle()
-        job1.join()
-        val updatedEntry = viewModel.allEntries.first()[0].copy(weight = 76.0f)
+        val entry = WeightEntry(weight = 75.5f, date = Date())
+        database.weightDao().insert(entry)
+
+        // Wait for insertion
+        val savedEntries = viewModel.allEntries.filter { it.isNotEmpty() }.first()
+        val entryToEdit = savedEntries[0]
+
+        val updatedEntry = entryToEdit.copy(weight = 76.0f)
 
         // When
-        val job2 = launch {
-            viewModel.editEntry(updatedEntry)
-        }
-        testDispatcher.scheduler.advanceUntilIdle()
-        job2.join()
+        viewModel.editEntry(updatedEntry)
+
+        // Wait for the update to reflect (check for the new weight)
+        val allEntries = viewModel.allEntries.filter {
+            it.isNotEmpty() && it[0].weight == 76.0f
+        }.first()
 
         // Then
-        val allEntries = viewModel.allEntries.first()
         assertEquals(1, allEntries.size)
         assertEquals(76.0f, allEntries[0].weight, 0.01f)
     }

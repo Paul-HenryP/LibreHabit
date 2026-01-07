@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.paulhenryp.librehabit" // <--- UPDATED
+    namespace = "com.paulhenryp.librehabit"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.paulhenryp.librehabit" // <--- UPDATED
+        applicationId = "com.paulhenryp.librehabit"
         minSdk = 29
         targetSdk = 36
         versionCode = 4
