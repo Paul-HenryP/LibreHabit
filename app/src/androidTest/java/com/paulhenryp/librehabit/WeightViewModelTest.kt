@@ -60,7 +60,7 @@ class WeightViewModelTest {
 
         // When
         viewModel.saveWeight(weightValue, date)
-        
+
         val allEntries = viewModel.allEntries.filter { it.isNotEmpty() }.first()
 
         // Then
