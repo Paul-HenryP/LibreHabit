@@ -5,25 +5,39 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.paulhenryp.librehabit.ui.components.EmptyState
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
+import com.patrykandpatrick.vico.compose.component.shapeComponent
+import com.patrykandpatrick.vico.compose.component.textComponent
+import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
 import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.chart.line.LineChart
+import com.patrykandpatrick.vico.core.component.shape.Shapes
+import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
+
+private const val DATA_POINT_VISIBILITY_THRESHOLD = 20
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +59,14 @@ fun GraphScreen(
             }
         chartModelProducer.setEntries(chartEntries)
     }
+
+    val dataLabel = textComponent(
+        color = MaterialTheme.colorScheme.onSurface,
+        textSize = 10.sp,
+        background = shapeComponent(Shapes.pillShape, MaterialTheme.colorScheme.surfaceVariant),
+        padding = dimensionsOf(horizontal = 6.dp, vertical = 2.dp)
+    )
+    val dataPoint = shapeComponent(Shapes.pillShape, MaterialTheme.colorScheme.primary)
 
     val bottomAxisValueFormatter =
         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
@@ -83,21 +105,22 @@ fun GraphScreen(
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             if (entries.size < 2) {
-                Text(
-                    text = "You need at least two entries to draw a graph.",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge
+                EmptyState(
+                    message = "Not enough data.\nAdd at least two entries to see your progress graph.",
+                    icon = Icons.AutoMirrored.Filled.ShowChart
                 )
             } else {
                 ProvideChartStyle(chartStyle = chartStyle) {
                     Chart(
-                        chart = lineChart(),
+                        chart = lineChart(
+
+                        ),
                         chartModelProducer = chartModelProducer,
                         startAxis = rememberStartAxis(
                             title = "Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})",
                             valueFormatter = startAxisValueFormatter,
                             itemPlacer = AxisItemPlacer.Vertical.default(
-                                maxItemCount = 10
+                                maxItemCount = 5
                             )
                         ),
                         bottomAxis = rememberBottomAxis(

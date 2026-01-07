@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.paulhenryp.librehabit.ui.components.EmptyState // <-- Import the new component
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -141,22 +143,32 @@ fun LibreHabitScreen(
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(top = 16.dp)
             )
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                items(entries) { entry ->
-                    HistoryItem(
-                        entry = entry,
-                        onDelete = { onDeleteEntry(entry) },
-                        onEdit = { editingEntry = entry },
-                        unitSystem = unitSystem,
-                        height = height,
-                        calculateBmi = calculateBmi
-                    )
+
+            if (entries.isEmpty()) {
+                EmptyState(
+                    message = "No entries yet.\nAdd your first weight above!",
+                    icon = Icons.Default.History,
+                    modifier = Modifier.weight(1f) // Fill remaining space
+                )
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    items(entries) { entry ->
+                        HistoryItem(
+                            entry = entry,
+                            onDelete = { onDeleteEntry(entry) },
+                            onEdit = { editingEntry = entry },
+                            unitSystem = unitSystem,
+                            height = height,
+                            calculateBmi = calculateBmi
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+// ... (HistoryItem and EditWeightDialog are unchanged) ...
 @Composable
 fun HistoryItem(
     entry: WeightEntry,
