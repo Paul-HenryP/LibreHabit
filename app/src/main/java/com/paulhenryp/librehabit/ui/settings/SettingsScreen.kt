@@ -78,6 +78,8 @@ fun SettingsScreen(
     onUnitSystemChange: (UnitSystem) -> Unit,
     height: Float,
     onHeightChange: (Float) -> Unit,
+    targetWeight: Float,
+    onTargetWeightChange: (Float) -> Unit,
     updateState: UpdateState,
     onCheckForUpdates: () -> Unit,
     onResetUpdateState: () -> Unit,
@@ -88,9 +90,12 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit
 ) {
     var heightInput by remember(height) { mutableStateOf(if (height > 0) height.toString() else "") }
+    var targetWeightInput by remember(targetWeight) { mutableStateOf(if (targetWeight > 0) targetWeight.toString() else "") }
+
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
@@ -215,7 +220,25 @@ fun SettingsScreen(
                 },
                 label = { Text("Height (${if (unitSystem == UnitSystem.METRIC) "cm" else "in"})") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = targetWeightInput,
+                onValueChange = { newValue ->
+                    if (newValue.all { it.isDigit() || it == '.' }) {
+                        targetWeightInput = newValue
+                        val newTarget = newValue.toFloatOrNull() ?: 0f
+                        onTargetWeightChange(newTarget)
+                    }
+                },
+                label = { Text("Target Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(24.dp))
