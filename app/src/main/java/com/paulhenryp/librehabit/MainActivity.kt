@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
             val darkModePreference by settingsViewModel.darkModePreference.collectAsState()
             val unitSystem by settingsViewModel.unitSystem.collectAsState()
             val height by settingsViewModel.height.collectAsState()
+            val targetWeight by settingsViewModel.targetWeight.collectAsState()
 
             val useDarkTheme = when (darkModePreference) {
                 DarkModePreference.LIGHT -> false
@@ -92,6 +93,8 @@ class MainActivity : ComponentActivity() {
                                 onUnitSystemChange = { settingsViewModel.setUnitSystem(it) },
                                 height = height,
                                 onHeightChange = { settingsViewModel.setHeight(it) },
+                                targetWeight = targetWeight,
+                                onTargetWeightChange = { settingsViewModel.setTargetWeight(it) },
                                 updateState = updateState,
                                 onCheckForUpdates = { settingsViewModel.checkForUpdates() },
                                 onResetUpdateState = { settingsViewModel.resetUpdateState() },

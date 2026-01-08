@@ -10,7 +10,11 @@ import com.paulhenryp.librehabit.data.UserDataStore
 import com.paulhenryp.librehabit.model.AppTheme
 import com.paulhenryp.librehabit.model.DarkModePreference
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -80,6 +84,19 @@ class SettingsViewModel(private val userDataStore: UserDataStore) : ViewModel() 
     fun setHeight(height: Float) {
         viewModelScope.launch {
             userDataStore.setHeight(height)
+        }
+    }
+
+    val targetWeight: StateFlow<Float> = userDataStore.targetWeight
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0f
+        )
+
+    fun setTargetWeight(weight: Float) {
+        viewModelScope.launch {
+            userDataStore.setTargetWeight(weight)
         }
     }
 

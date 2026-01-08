@@ -21,6 +21,7 @@ class UserDataStore(context: Context) {
         val DARK_MODE_PREFERENCE = stringPreferencesKey("dark_mode_preference")
         val UNIT_SYSTEM = stringPreferencesKey("unit_system")
         val HEIGHT = floatPreferencesKey("height")
+        val TARGET_WEIGHT = floatPreferencesKey("target_weight")
     }
 
     val appTheme: Flow<AppTheme> = dataStore.data.map { preferences ->
@@ -60,6 +61,16 @@ class UserDataStore(context: Context) {
     suspend fun setHeight(height: Float) {
         dataStore.edit { preferences ->
             preferences[HEIGHT] = height
+        }
+    }
+
+    val targetWeight: Flow<Float> = dataStore.data.map { preferences ->
+        preferences[TARGET_WEIGHT] ?: 0f
+    }
+
+    suspend fun setTargetWeight(weight: Float) {
+        dataStore.edit { preferences ->
+            preferences[TARGET_WEIGHT] = weight
         }
     }
 }
