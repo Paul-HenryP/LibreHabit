@@ -58,8 +58,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.paulhenryp.librehabit.R
 import com.paulhenryp.librehabit.UnitSystem
 import com.paulhenryp.librehabit.model.AppTheme
 import com.paulhenryp.librehabit.model.DarkModePreference
@@ -101,7 +103,7 @@ fun SettingsScreen(
     ) { uri ->
         uri?.let {
             onExportData(it)
-            Toast.makeText(context, "Exporting data...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_exporting), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -110,18 +112,18 @@ fun SettingsScreen(
     ) { uri ->
         uri?.let {
             onImportData(it)
-            Toast.makeText(context, "Importing data...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_importing), Toast.LENGTH_SHORT).show()
         }
     }
 
     LaunchedEffect(updateState) {
         when (updateState) {
             is UpdateState.UpToDate -> {
-                Toast.makeText(context, "You are on the latest version.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_up_to_date), Toast.LENGTH_SHORT).show()
                 onResetUpdateState()
             }
             is UpdateState.Error -> {
-                Toast.makeText(context, "Error checking for updates: ${updateState.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, String.format(context.getString(R.string.toast_update_error), updateState.message), Toast.LENGTH_LONG).show()
                 onResetUpdateState()
             }
             else -> {  }
@@ -142,7 +144,7 @@ fun SettingsScreen(
             onConfirm = {
                 onDeleteAllData()
                 showDeleteDialog = false
-                Toast.makeText(context, "All data deleted.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_all_data_deleted), Toast.LENGTH_SHORT).show()
             },
             onDismiss = { showDeleteDialog = false }
         )
@@ -151,12 +153,12 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -170,24 +172,24 @@ fun SettingsScreen(
                 .padding(16.dp)
                 .verticalScroll(scrollState)
         ) {
-            Text("Appearance", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.settings_section_appearance), style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Dark Mode", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.settings_dark_mode), style = MaterialTheme.typography.titleMedium)
             Column {
                 DarkModePreference.values().forEach { preference ->
                     ThemeRadioButton(
-                        text = preference.displayName,
+                        text = stringResource(preference.displayNameResId),
                         selected = darkModePreference == preference,
                         onClick = { onDarkModePreferenceChange(preference) }
                     )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Color Theme", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.settings_color_theme), style = MaterialTheme.typography.titleMedium)
             Column {
                 AppTheme.values().forEach { theme ->
                     ThemeRadioButton(
-                        text = theme.displayName,
+                        text = stringResource(theme.displayNameResId),
                         selected = appTheme == theme,
                         onClick = { onAppThemeChange(theme) }
                     )
@@ -195,21 +197,21 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Units", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.settings_section_units), style = MaterialTheme.typography.titleLarge)
             Column {
                 UnitRadioButton(
-                    text = "Metric (kg, cm)",
+                    text = stringResource(R.string.settings_unit_metric),
                     selected = unitSystem == UnitSystem.METRIC,
                     onClick = { onUnitSystemChange(UnitSystem.METRIC) }
                 )
                 UnitRadioButton(
-                    text = "Imperial (lbs, in)",
+                    text = stringResource(R.string.settings_unit_imperial),
                     selected = unitSystem == UnitSystem.IMPERIAL,
                     onClick = { onUnitSystemChange(UnitSystem.IMPERIAL) }
                 )
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Personal Info", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.settings_section_personal_info), style = MaterialTheme.typography.titleLarge)
             OutlinedTextField(
                 value = heightInput,
                 onValueChange = { newValue ->
@@ -218,7 +220,7 @@ fun SettingsScreen(
                         newValue.toFloatOrNull()?.let { onHeightChange(it) }
                     }
                 },
-                label = { Text("Height (${if (unitSystem == UnitSystem.METRIC) "cm" else "in"})") },
+                label = { Text(stringResource(if (unitSystem == UnitSystem.METRIC) R.string.settings_height_label_cm else R.string.settings_height_label_in)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -235,7 +237,7 @@ fun SettingsScreen(
                         onTargetWeightChange(newTarget)
                     }
                 },
-                label = { Text("Target Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
+                label = { Text(stringResource(if (unitSystem == UnitSystem.METRIC) R.string.settings_target_weight_label_kg else R.string.settings_target_weight_label_lbs)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -243,9 +245,9 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Data Management", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.settings_section_data_management), style = MaterialTheme.typography.titleLarge)
             ClickableInfoRow(
-                text = "Export Data to CSV",
+                text = stringResource(R.string.settings_export_data),
                 icon = Icons.Default.Download,
                 onClick = {
                     val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
@@ -254,7 +256,7 @@ fun SettingsScreen(
             )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             ClickableInfoRow(
-                text = "Import Data from CSV",
+                text = stringResource(R.string.settings_import_data),
                 icon = Icons.Default.Upload,
                 onClick = {
                     importLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
@@ -262,7 +264,7 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Danger Zone", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.settings_danger_zone), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
             Button(
                 onClick = { showDeleteDialog = true },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
@@ -270,21 +272,21 @@ fun SettingsScreen(
             ) {
                 Icon(Icons.Default.DeleteForever, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Delete All Data")
+                Text(stringResource(R.string.settings_delete_all_data))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("About", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.settings_section_about), style = MaterialTheme.typography.titleLarge)
             Text(
-                text = "LibreHabit is a simple, open-source, and ad-free habit tracker built with privacy in mind.",
+                text = stringResource(R.string.settings_about_description),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             ClickableInfoRow(
-                text = "Source Code",
+                text = stringResource(R.string.settings_source_code),
                 icon = Icons.AutoMirrored.Filled.OpenInNew,
                 onClick = {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Paul-HenryP/LibreHabit"))
@@ -294,7 +296,7 @@ fun SettingsScreen(
             val btcAddress = "35k63G5qH3q2y7ssYyrDPXRSkYm5eB5Fc3"
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             ClickableInfoRow(
-                text = "Support the Creator",
+                text = stringResource(R.string.settings_support_creator),
                 icon = null,
                 onClick = {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -302,7 +304,7 @@ fun SettingsScreen(
                     clipboard.setPrimaryClip(clip)
                     Toast.makeText(
                         context,
-                        "BTC address copied to clipboard:\n$btcAddress",
+                        String.format(context.getString(R.string.toast_btc_copied), btcAddress),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -312,7 +314,7 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("App Version", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.settings_app_version), style = MaterialTheme.typography.bodyLarge)
                 Text(appVersion, style = MaterialTheme.typography.bodyLarge)
             }
 
@@ -324,7 +326,7 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Check for Updates")
+                    Text(stringResource(R.string.settings_check_for_updates))
                     if (updateState is UpdateState.Checking) {
                         Spacer(modifier = Modifier.width(8.dp))
                         CircularProgressIndicator(
@@ -345,22 +347,22 @@ private fun DeleteConfirmationDialog(
     onDismiss: () -> Unit
 ) {
     var confirmationInput by remember { mutableStateOf("") }
-    val confirmationString = "Delete my data"
+    val confirmationString = stringResource(R.string.delete_dialog_confirmation_string)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Delete All Data") },
+        title = { Text(stringResource(R.string.delete_dialog_title)) },
         text = {
             Column {
                 Text(
-                    text = "This action cannot be undone. To confirm, please type \"$confirmationString\" below:",
+                    text = stringResource(R.string.delete_dialog_message, confirmationString),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = confirmationInput,
                     onValueChange = { confirmationInput = it },
-                    label = { Text("Confirmation") },
+                    label = { Text(stringResource(R.string.delete_dialog_confirmation_label)) },
                     placeholder = { Text(confirmationString) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -373,12 +375,12 @@ private fun DeleteConfirmationDialog(
                 enabled = confirmationInput == confirmationString,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
-                Text("Delete")
+                Text(stringResource(R.string.delete))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -421,11 +423,11 @@ private fun UpdateAvailableDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Update Available") },
+        title = { Text(stringResource(R.string.update_dialog_title)) },
         text = {
             Column {
                 Text(
-                    text = "Version $latestVersion is available. Here's what's new:",
+                    text = stringResource(R.string.update_dialog_message, latestVersion),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -453,12 +455,12 @@ private fun UpdateAvailableDialog(
                     onDismiss()
                 }
             ) {
-                Text("Go to Download")
+                Text(stringResource(R.string.update_dialog_go_to_download))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Later")
+                Text(stringResource(R.string.later))
             }
         }
     )
