@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.paulhenryp.librehabit.ui.components.EmptyState // <-- Import the new component
@@ -77,13 +78,13 @@ fun LibreHabitScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("LibreHabit") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onNavigateToGraph) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Graph")
+                        Icon(Icons.Default.BarChart, contentDescription = stringResource(R.string.main_content_description_graph))
                     }
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.main_content_description_settings))
                     }
                 }
             )
@@ -96,7 +97,7 @@ fun LibreHabitScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Enter Your Weight", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.main_enter_weight), style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -106,14 +107,14 @@ fun LibreHabitScreen(
                         weightInput = newValue
                     }
                 },
-                label = { Text("Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
+                label = { Text(stringResource(if (unitSystem == UnitSystem.METRIC) R.string.weight_label_kg else R.string.weight_label_lbs)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Date: $formattedDate",
+                text = stringResource(R.string.main_date_format, formattedDate),
                 style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable { showDatePicker = true }
@@ -132,21 +133,21 @@ fun LibreHabitScreen(
                 },
                 enabled = weightInput.toFloatOrNull()?.let { it > 0 } ?: false
             ) {
-                Text("Save Weight")
+                Text(stringResource(R.string.main_save_weight))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
             HorizontalDivider()
 
             Text(
-                "History",
+                stringResource(R.string.main_history),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(top = 16.dp)
             )
 
             if (entries.isEmpty()) {
                 EmptyState(
-                    message = "No entries yet.\nAdd your first weight above!",
+                    message = stringResource(R.string.main_empty_state),
                     icon = Icons.Default.History,
                     modifier = Modifier.weight(1f) // Fill remaining space
                 )
@@ -183,6 +184,8 @@ fun HistoryItem(
     }
     val weightInSelectedUnit = if (unitSystem == UnitSystem.IMPERIAL) entry.weight * 2.20462f else entry.weight
     val bmi = if (height > 0) calculateBmi(entry.weight, height) else 0f
+    val unitLabel = stringResource(if (unitSystem == UnitSystem.METRIC) R.string.unit_kg else R.string.unit_lbs)
+    val bmiFormat = stringResource(R.string.main_bmi_format)
 
     Row(
         modifier = Modifier
@@ -192,16 +195,16 @@ fun HistoryItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = formattedDate)
-        Text(text = "${String.format("%.1f", weightInSelectedUnit)} ${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"}", style = MaterialTheme.typography.bodyLarge)
+        Text(text = "${String.format(Locale.US, "%.1f", weightInSelectedUnit)} $unitLabel", style = MaterialTheme.typography.bodyLarge)
         if (bmi > 0) {
-            Text(text = "BMI: ${String.format("%.1f", bmi)}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = String.format(Locale.US, bmiFormat, bmi), style = MaterialTheme.typography.bodyLarge)
         }
         Row {
             IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit")
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.main_content_description_edit))
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
             }
         }
     }
@@ -239,7 +242,7 @@ fun EditWeightDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Edit Entry") },
+        title = { Text(stringResource(R.string.main_edit_dialog_title)) },
         text = {
             Column {
                 OutlinedTextField(
@@ -249,13 +252,13 @@ fun EditWeightDialog(
                             newWeight = newValue
                         }
                     },
-                    label = { Text("Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
+                    label = { Text(stringResource(if (unitSystem == UnitSystem.METRIC) R.string.weight_label_kg else R.string.weight_label_lbs)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Date: $formattedDate",
+                    text = stringResource(R.string.main_date_format, formattedDate),
                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable { showDatePicker = true }
@@ -272,12 +275,12 @@ fun EditWeightDialog(
                     }
                 }
             ) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

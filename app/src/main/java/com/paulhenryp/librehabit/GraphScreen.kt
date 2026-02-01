@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
@@ -94,10 +95,10 @@ fun GraphScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Weight History") },
+                title = { Text(stringResource(R.string.graph_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -106,7 +107,7 @@ fun GraphScreen(
         Column(modifier = Modifier.padding(paddingValues)) {
             if (entries.size < 2) {
                 EmptyState(
-                    message = "Not enough data.\nAdd at least two entries to see your progress graph.",
+                    message = stringResource(R.string.graph_empty_state),
                     icon = Icons.AutoMirrored.Filled.ShowChart
                 )
             } else {
@@ -117,7 +118,7 @@ fun GraphScreen(
                         ),
                         chartModelProducer = chartModelProducer,
                         startAxis = rememberStartAxis(
-                            title = "Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})",
+                            title = stringResource(if (unitSystem == UnitSystem.METRIC) R.string.weight_label_kg else R.string.weight_label_lbs),
                             valueFormatter = startAxisValueFormatter,
                             itemPlacer = AxisItemPlacer.Vertical.default(
                                 maxItemCount = 5
