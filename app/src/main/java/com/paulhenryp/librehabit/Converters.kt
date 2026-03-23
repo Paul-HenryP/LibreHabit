@@ -13,4 +13,14 @@ class Converters {
     fun dateToTimestamp(date: Date?): Long? {
         return date?.time
     }
+
+    @TypeConverter
+    fun fromHabitType(value: HabitType): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun toHabitType(value: String): HabitType {
+        return HabitType.valueOf(value)
+    }
 }

@@ -3,7 +3,6 @@ package com.paulhenryp.librehabit
 import android.app.Application
 import android.content.ContentResolver
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -13,8 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -49,6 +46,8 @@ class WeightViewModel(private val database: AppDatabase) : ViewModel() {
     fun deleteAllData() {
         viewModelScope.launch {
             database.weightDao().deleteAll()
+            database.habitDao().deleteAllHabitEntries()
+            database.habitDao().deleteAllHabits()
         }
     }
 
@@ -86,15 +85,15 @@ class WeightViewModel(private val database: AppDatabase) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val inputStream = contentResolver.openInputStream(uri)
-                val reader = BufferedReader(InputStreamReader(inputStream))
+                val reader = inputStream?.bufferedReader()
                 val entriesToAdd = mutableListOf<WeightEntry>()
 
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
                 dateFormat.timeZone = TimeZone.getTimeZone("UTC")
 
-                reader.readLine()
+                reader?.readLine()
 
-                var line: String? = reader.readLine()
+                var line: String? = reader?.readLine()
                 while (line != null) {
                     try {
                         val parts = line.split(",")
@@ -110,16 +109,15 @@ class WeightViewModel(private val database: AppDatabase) : ViewModel() {
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e("CSVImport", "Error parsing line: $line", e)
                     }
-                    line = reader.readLine()
+                    line = reader?.readLine()
                 }
 
                 if (entriesToAdd.isNotEmpty()) {
                     database.weightDao().insertAll(entriesToAdd)
                 }
 
-                reader.close()
+                reader?.close()
                 inputStream?.close()
             } catch (e: Exception) {
                 e.printStackTrace()
