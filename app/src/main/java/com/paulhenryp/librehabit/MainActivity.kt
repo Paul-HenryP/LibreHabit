@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.paulhenryp.librehabit.model.DarkModePreference
+import com.paulhenryp.librehabit.ui.habits.ManageHabitsScreen
 import com.paulhenryp.librehabit.ui.settings.SettingsScreen
 import com.paulhenryp.librehabit.ui.settings.SettingsViewModel
 import com.paulhenryp.librehabit.ui.settings.SettingsViewModelFactory
@@ -29,6 +30,10 @@ class MainActivity : ComponentActivity() {
 
     private val settingsViewModel: SettingsViewModel by viewModels {
         SettingsViewModelFactory(application)
+    }
+
+    private val habitViewModel: HabitViewModel by viewModels {
+        HabitViewModelFactory(application)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +72,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToSettings = { navController.navigate("settings") },
                                 onNavigateToGraph = { navController.navigate("graph") },
+                                onNavigateToHabits = { navController.navigate("manage_habits") },
                                 onDeleteEntry = { entry -> weightViewModel.deleteEntry(entry) },
                                 onEditEntry = { entry -> weightViewModel.editEntry(entry) },
                                 unitSystem = unitSystem,
@@ -79,6 +85,16 @@ class MainActivity : ComponentActivity() {
                             GraphScreen(
                                 entries = entries,
                                 unitSystem = unitSystem,
+                                onNavigateUp = { navController.popBackStack() }
+                            )
+                        }
+                        composable("manage_habits") {
+                            val habits by habitViewModel.allHabits.collectAsState()
+                            ManageHabitsScreen(
+                                habits = habits,
+                                onAddHabit = { name, type, goal, unit -> habitViewModel.addHabit(name, type, goal, unit) },
+                                onUpdateHabit = { habit -> habitViewModel.updateHabit(habit) },
+                                onDeleteHabit = { habit -> habitViewModel.deleteHabit(habit) },
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }

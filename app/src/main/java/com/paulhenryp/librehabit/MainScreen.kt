@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.List // <-- Uus ikoon harjumuste jaoks
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.paulhenryp.librehabit.ui.components.EmptyState // <-- Import the new component
+import com.paulhenryp.librehabit.ui.components.EmptyState
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,6 +33,7 @@ fun LibreHabitScreen(
     onSaveWeight: (Float, Date) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToGraph: () -> Unit,
+    onNavigateToHabits: () -> Unit, // <-- Uus navigeerimise parameeter
     onDeleteEntry: (WeightEntry) -> Unit,
     onEditEntry: (WeightEntry) -> Unit,
     unitSystem: UnitSystem,
@@ -79,6 +81,10 @@ fun LibreHabitScreen(
             TopAppBar(
                 title = { Text("LibreHabit") },
                 actions = {
+                    // VVV Nupp harjumuste lehele minekuks VVV
+                    IconButton(onClick = onNavigateToHabits) {
+                        Icon(Icons.Default.List, contentDescription = "Manage Habits")
+                    }
                     IconButton(onClick = onNavigateToGraph) {
                         Icon(Icons.Default.BarChart, contentDescription = "Graph")
                     }
@@ -148,7 +154,7 @@ fun LibreHabitScreen(
                 EmptyState(
                     message = "No entries yet.\nAdd your first weight above!",
                     icon = Icons.Default.History,
-                    modifier = Modifier.weight(1f) // Fill remaining space
+                    modifier = Modifier.weight(1f)
                 )
             } else {
                 LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
@@ -168,7 +174,6 @@ fun LibreHabitScreen(
     }
 }
 
-// ... (HistoryItem and EditWeightDialog are unchanged) ...
 @Composable
 fun HistoryItem(
     entry: WeightEntry,
