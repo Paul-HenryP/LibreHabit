@@ -8,11 +8,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.List // <-- Uus ikoon harjumuste jaoks
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,11 +29,17 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibreHabitScreen(
-    entries: List<WeightEntry>,
+    isWeightTrackingEnabled: Boolean,
+    weightEntries: List<WeightEntry>,
     onSaveWeight: (Float, Date) -> Unit,
+    habits: List<Habit>,
+    habitEntries: List<HabitEntry>,
+    onSaveHabitEntry: (Int, Float, Date) -> Unit,
+    selectedDate: Date,
+    onDateSelected: (Date) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToGraph: () -> Unit,
-    onNavigateToHabits: () -> Unit, // <-- Uus navigeerimise parameeter
+    onNavigateToHabits: () -> Unit,
     onDeleteEntry: (WeightEntry) -> Unit,
     onEditEntry: (WeightEntry) -> Unit,
     unitSystem: UnitSystem,
@@ -42,9 +48,9 @@ fun LibreHabitScreen(
 ) {
     var weightInput by remember { mutableStateOf("") }
     var editingEntry by remember { mutableStateOf<WeightEntry?>(null) }
-    var selectedDate by remember { mutableStateOf(Date()) }
     var showDatePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
     val formattedDate = remember(selectedDate) {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(selectedDate)
     }
@@ -55,7 +61,7 @@ fun LibreHabitScreen(
             context,
             { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
                 calendar.set(year, month, dayOfMonth)
-                selectedDate = calendar.time
+                onDateSelected(calendar.time)
                 showDatePicker = false
             },
             calendar.get(Calendar.YEAR),
@@ -64,7 +70,7 @@ fun LibreHabitScreen(
         ).show()
     }
 
-    if (editingEntry != null) {
+    if (editingEntry != null && isWeightTrackingEnabled) {
         EditWeightDialog(
             entry = editingEntry!!,
             onDismiss = { editingEntry = null },
@@ -81,12 +87,13 @@ fun LibreHabitScreen(
             TopAppBar(
                 title = { Text("LibreHabit") },
                 actions = {
-                    // VVV Nupp harjumuste lehele minekuks VVV
                     IconButton(onClick = onNavigateToHabits) {
-                        Icon(Icons.Default.List, contentDescription = "Manage Habits")
+                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Manage Habits")
                     }
-                    IconButton(onClick = onNavigateToGraph) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Graph")
+                    if (isWeightTrackingEnabled) {
+                        IconButton(onClick = onNavigateToGraph) {
+                            Icon(Icons.Default.BarChart, contentDescription = "Graph")
+                        }
                     }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
@@ -95,79 +102,200 @@ fun LibreHabitScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Enter Your Weight", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = weightInput,
-                onValueChange = { newValue ->
-                    if (newValue.all { it.isDigit() || it == '.' }) {
-                        weightInput = newValue
-                    }
-                },
-                label = { Text("Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Date: $formattedDate",
-                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable { showDatePicker = true }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    val weight = weightInput.toFloatOrNull()
-                    if (weight != null && weight > 0) {
-                        val weightInKg = if (unitSystem == UnitSystem.IMPERIAL) weight / 2.20462f else weight
-                        onSaveWeight(weightInKg, selectedDate)
-                        weightInput = ""
-                        selectedDate = Date()
-                    }
-                },
-                enabled = weightInput.toFloatOrNull()?.let { it > 0 } ?: false
-            ) {
-                Text("Save Weight")
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Selected Date: $formattedDate",
+                    style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.primary),
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier
+                        .clickable { showDatePicker = true }
+                        .padding(8.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
-
-            Text(
-                "History",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-
-            if (entries.isEmpty()) {
-                EmptyState(
-                    message = "No entries yet.\nAdd your first weight above!",
-                    icon = Icons.Default.History,
-                    modifier = Modifier.weight(1f)
+            item {
+                Text(
+                    "Daily Habits",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
+            }
+
+            if (habits.isEmpty()) {
+                item {
+                    EmptyState(
+                        message = "No custom habits yet.\nTap the list icon top-right to add some!",
+                        icon = Icons.AutoMirrored.Filled.List,
+                        modifier = Modifier.padding(32.dp)
+                    )
+                }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    items(entries) { entry ->
-                        HistoryItem(
-                            entry = entry,
-                            onDelete = { onDeleteEntry(entry) },
-                            onEdit = { editingEntry = entry },
-                            unitSystem = unitSystem,
-                            height = height,
-                            calculateBmi = calculateBmi
+                items(habits) { habit ->
+                    val entry = habitEntries.find { it.habitId == habit.id }
+                    HabitCard(
+                        habit = habit,
+                        entry = entry,
+                        onValueChange = { newValue ->
+                            onSaveHabitEntry(habit.id, newValue, selectedDate)
+                        }
+                    )
+                }
+            }
+
+            if (isWeightTrackingEnabled) {
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        "Weight Tracker",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            OutlinedTextField(
+                                value = weightInput,
+                                onValueChange = { newValue ->
+                                    if (newValue.all { it.isDigit() || it == '.' }) {
+                                        weightInput = newValue
+                                    }
+                                },
+                                label = { Text("Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = {
+                                    val weight = weightInput.toFloatOrNull()
+                                    if (weight != null && weight > 0) {
+                                        val weightInKg = if (unitSystem == UnitSystem.IMPERIAL) weight / 2.20462f else weight
+                                        onSaveWeight(weightInKg, selectedDate)
+                                        weightInput = ""
+                                    }
+                                },
+                                enabled = weightInput.toFloatOrNull()?.let { it > 0 } ?: false,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Save Weight")
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    Text(
+                        "Weight History",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                    )
+                }
+
+                if (weightEntries.isEmpty()) {
+                    item {
+                        EmptyState(
+                            message = "No weight entries yet.\nAdd your first weight above!",
+                            icon = Icons.Default.History,
+                            modifier = Modifier.padding(32.dp)
                         )
                     }
+                } else {
+                    items(weightEntries) { entry ->
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            HistoryItem(
+                                entry = entry,
+                                onDelete = { onDeleteEntry(entry) },
+                                onEdit = { editingEntry = entry },
+                                unitSystem = unitSystem,
+                                height = height,
+                                calculateBmi = calculateBmi
+                            )
+                        }
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(32.dp)) }
+        }
+    }
+}
+
+@Composable
+fun HabitCard(
+    habit: Habit,
+    entry: HabitEntry?,
+    onValueChange: (Float) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .padding(vertical = 4.dp, horizontal = 16.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = habit.name,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (habit.type == HabitType.CHECKMARK) {
+                val isChecked = entry?.value == 1.0f
+                Checkbox(
+                    checked = isChecked,
+                    onCheckedChange = { checked ->
+                        onValueChange(if (checked) 1.0f else 0.0f)
+                    }
+                )
+            } else {
+                var textValue by remember(entry?.value) {
+                    mutableStateOf(if (entry != null && entry.value > 0) entry.value.toString() else "")
+                }
+                OutlinedTextField(
+                    value = textValue,
+                    onValueChange = { newValue ->
+                        if (newValue.isEmpty() || newValue.toFloatOrNull() != null) {
+                            textValue = newValue
+                            val floatVal = newValue.toFloatOrNull() ?: 0f
+                            onValueChange(floatVal)
+                        }
+                    },
+                    modifier = Modifier.width(80.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+                if (!habit.unit.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = habit.unit, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
@@ -197,9 +325,9 @@ fun HistoryItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = formattedDate)
-        Text(text = "${String.format("%.1f", weightInSelectedUnit)} ${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"}", style = MaterialTheme.typography.bodyLarge)
+        Text(text = "${String.format(Locale.US, "%.1f", weightInSelectedUnit)} ${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"}", style = MaterialTheme.typography.bodyLarge)
         if (bmi > 0) {
-            Text(text = "BMI: ${String.format("%.1f", bmi)}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "BMI: ${String.format(Locale.US, "%.1f", bmi)}", style = MaterialTheme.typography.bodyLarge)
         }
         Row {
             IconButton(onClick = onEdit) {

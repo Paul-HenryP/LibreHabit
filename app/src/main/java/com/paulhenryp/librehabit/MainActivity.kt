@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
             val unitSystem by settingsViewModel.unitSystem.collectAsState()
             val height by settingsViewModel.height.collectAsState()
             val targetWeight by settingsViewModel.targetWeight.collectAsState()
+            val isWeightTrackingEnabled by settingsViewModel.isWeightTrackingEnabled.collectAsState() // UUS VÄÄRTUS
 
             val useDarkTheme = when (darkModePreference) {
                 DarkModePreference.LIGHT -> false
@@ -64,11 +65,26 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(navController = navController, startDestination = "main") {
                         composable("main") {
-                            val entries by weightViewModel.allEntries.collectAsState()
+                            val weightEntries by weightViewModel.allEntries.collectAsState()
+
+                            val habits by habitViewModel.allHabits.collectAsState()
+                            val habitEntries by habitViewModel.habitEntriesForDate.collectAsState()
+                            val selectedDate by habitViewModel.selectedDate.collectAsState()
+
                             LibreHabitScreen(
-                                entries = entries,
+                                isWeightTrackingEnabled = isWeightTrackingEnabled, // UUS PARAMEETER
+                                weightEntries = weightEntries,
                                 onSaveWeight = { weight, date ->
                                     weightViewModel.saveWeight(weight, date)
+                                },
+                                habits = habits,
+                                habitEntries = habitEntries,
+                                onSaveHabitEntry = { habitId, value, date ->
+                                    habitViewModel.saveHabitEntry(habitId, value, date)
+                                },
+                                selectedDate = selectedDate,
+                                onDateSelected = { date ->
+                                    habitViewModel.setSelectedDate(date)
                                 },
                                 onNavigateToSettings = { navController.navigate("settings") },
                                 onNavigateToGraph = { navController.navigate("graph") },
@@ -77,7 +93,7 @@ class MainActivity : ComponentActivity() {
                                 onEditEntry = { entry -> weightViewModel.editEntry(entry) },
                                 unitSystem = unitSystem,
                                 height = height,
-                                calculateBmi = { weight, height -> weightViewModel.calculateBmi(weight, height) }
+                                calculateBmi = { w, h -> weightViewModel.calculateBmi(w, h) }
                             )
                         }
                         composable("graph") {
@@ -85,6 +101,7 @@ class MainActivity : ComponentActivity() {
                             GraphScreen(
                                 entries = entries,
                                 unitSystem = unitSystem,
+                                targetWeight = targetWeight,
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }
@@ -111,6 +128,8 @@ class MainActivity : ComponentActivity() {
                                 onHeightChange = { settingsViewModel.setHeight(it) },
                                 targetWeight = targetWeight,
                                 onTargetWeightChange = { settingsViewModel.setTargetWeight(it) },
+                                isWeightTrackingEnabled = isWeightTrackingEnabled, // UUS PARAMEETER
+                                onWeightTrackingEnabledChange = { settingsViewModel.setWeightTrackingEnabled(it) }, // UUS PARAMEETER
                                 updateState = updateState,
                                 onCheckForUpdates = { settingsViewModel.checkForUpdates() },
                                 onResetUpdateState = { settingsViewModel.resetUpdateState() },
@@ -123,6 +142,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onDeleteAllData = {
                                     weightViewModel.deleteAllData()
+                                    habitViewModel.deleteAllData()
                                 },
                                 onNavigateUp = { navController.popBackStack() }
                             )
