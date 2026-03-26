@@ -100,6 +100,19 @@ class SettingsViewModel(private val userDataStore: UserDataStore) : ViewModel() 
         }
     }
 
+    val isWeightTrackingEnabled: StateFlow<Boolean> = userDataStore.isWeightTrackingEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = true
+        )
+
+    fun setWeightTrackingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userDataStore.setWeightTrackingEnabled(enabled)
+        }
+    }
+
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val updateState: StateFlow<UpdateState> = _updateState.asStateFlow()
 
@@ -150,9 +163,9 @@ class SettingsViewModel(private val userDataStore: UserDataStore) : ViewModel() 
 }
 
 class SettingsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
             return SettingsViewModel(UserDataStore(application)) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

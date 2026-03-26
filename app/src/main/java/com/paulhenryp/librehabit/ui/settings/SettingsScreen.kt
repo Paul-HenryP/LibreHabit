@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -80,6 +81,8 @@ fun SettingsScreen(
     onHeightChange: (Float) -> Unit,
     targetWeight: Float,
     onTargetWeightChange: (Float) -> Unit,
+    isWeightTrackingEnabled: Boolean,
+    onWeightTrackingEnabledChange: (Boolean) -> Unit,
     updateState: UpdateState,
     onCheckForUpdates: () -> Unit,
     onResetUpdateState: () -> Unit,
@@ -170,6 +173,24 @@ fun SettingsScreen(
                 .padding(16.dp)
                 .verticalScroll(scrollState)
         ) {
+
+            Text("Features", style = MaterialTheme.typography.titleLarge)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Enable Weight Tracking", style = MaterialTheme.typography.bodyLarge)
+                Switch(
+                    checked = isWeightTrackingEnabled,
+                    onCheckedChange = onWeightTrackingEnabledChange
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text("Appearance", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             Text("Dark Mode", style = MaterialTheme.typography.titleMedium)
@@ -208,38 +229,41 @@ fun SettingsScreen(
                     onClick = { onUnitSystemChange(UnitSystem.IMPERIAL) }
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Personal Info", style = MaterialTheme.typography.titleLarge)
-            OutlinedTextField(
-                value = heightInput,
-                onValueChange = { newValue ->
-                    if (newValue.all { it.isDigit() || it == '.' }) {
-                        heightInput = newValue
-                        newValue.toFloatOrNull()?.let { onHeightChange(it) }
-                    }
-                },
-                label = { Text("Height (${if (unitSystem == UnitSystem.METRIC) "cm" else "in"})") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (isWeightTrackingEnabled) {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Personal Info", style = MaterialTheme.typography.titleLarge)
+                OutlinedTextField(
+                    value = heightInput,
+                    onValueChange = { newValue ->
+                        if (newValue.all { it.isDigit() || it == '.' }) {
+                            heightInput = newValue
+                            newValue.toFloatOrNull()?.let { onHeightChange(it) }
+                        }
+                    },
+                    label = { Text("Height (${if (unitSystem == UnitSystem.METRIC) "cm" else "in"})") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            OutlinedTextField(
-                value = targetWeightInput,
-                onValueChange = { newValue ->
-                    if (newValue.all { it.isDigit() || it == '.' }) {
-                        targetWeightInput = newValue
-                        val newTarget = newValue.toFloatOrNull() ?: 0f
-                        onTargetWeightChange(newTarget)
-                    }
-                },
-                label = { Text("Target Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = targetWeightInput,
+                    onValueChange = { newValue ->
+                        if (newValue.all { it.isDigit() || it == '.' }) {
+                            targetWeightInput = newValue
+                            val newTarget = newValue.toFloatOrNull() ?: 0f
+                            onTargetWeightChange(newTarget)
+                        }
+                    },
+                    label = { Text("Target Weight (${if (unitSystem == UnitSystem.METRIC) "kg" else "lbs"})") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

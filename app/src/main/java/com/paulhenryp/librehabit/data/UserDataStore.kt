@@ -22,6 +22,7 @@ class UserDataStore(context: Context) {
         val UNIT_SYSTEM = stringPreferencesKey("unit_system")
         val HEIGHT = floatPreferencesKey("height")
         val TARGET_WEIGHT = floatPreferencesKey("target_weight")
+        val WEIGHT_TRACKING_ENABLED = booleanPreferencesKey("weight_tracking_enabled") // UUS VÄLI
     }
 
     val appTheme: Flow<AppTheme> = dataStore.data.map { preferences ->
@@ -71,6 +72,16 @@ class UserDataStore(context: Context) {
     suspend fun setTargetWeight(weight: Float) {
         dataStore.edit { preferences ->
             preferences[TARGET_WEIGHT] = weight
+        }
+    }
+
+    val isWeightTrackingEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[WEIGHT_TRACKING_ENABLED] ?: true
+    }
+
+    suspend fun setWeightTrackingEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[WEIGHT_TRACKING_ENABLED] = enabled
         }
     }
 }
