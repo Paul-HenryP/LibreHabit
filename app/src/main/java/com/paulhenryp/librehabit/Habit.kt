@@ -12,5 +12,6 @@ data class Habit(
     val type: HabitType,
     val goal: Float?,
     val unit: String?,
-    val creationDate: Date
+    val creationDate: Date,
+    val targetDays: List<Int> = listOf(1, 2, 3, 4, 5, 6, 7)
 )

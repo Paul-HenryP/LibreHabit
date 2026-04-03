@@ -23,4 +23,15 @@ class Converters {
     fun toHabitType(value: String): HabitType {
         return HabitType.valueOf(value)
     }
+
+    @TypeConverter
+    fun fromIntList(value: List<Int>): String {
+        return value.joinToString(",")
+    }
+
+    @TypeConverter
+    fun toIntList(value: String): List<Int> {
+        if (value.isEmpty()) return emptyList()
+        return value.split(",").mapNotNull { it.toIntOrNull() }
+    }
 }
