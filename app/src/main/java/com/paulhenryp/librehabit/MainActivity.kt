@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                             val selectedDate by habitViewModel.selectedDate.collectAsState()
 
                             LibreHabitScreen(
-                                isWeightTrackingEnabled = isWeightTrackingEnabled, // UUS PARAMEETER
+                                isWeightTrackingEnabled = isWeightTrackingEnabled,
                                 weightEntries = weightEntries,
                                 onSaveWeight = { weight, date ->
                                     weightViewModel.saveWeight(weight, date)
