@@ -1,6 +1,9 @@
 package com.paulhenryp.librehabit.ui.habits
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,10 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,7 +44,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.paulhenryp.librehabit.Habit
 import com.paulhenryp.librehabit.HabitType
@@ -48,7 +55,7 @@ import com.paulhenryp.librehabit.HabitType
 @Composable
 fun ManageHabitsScreen(
     habits: List<Habit>,
-    onAddHabit: (String, HabitType, Float?, String?) -> Unit,
+    onAddHabit: (String, HabitType, Float?, String?, List<Int>) -> Unit,
     onUpdateHabit: (Habit) -> Unit,
     onDeleteHabit: (Habit) -> Unit,
     onNavigateUp: () -> Unit
@@ -60,8 +67,8 @@ fun ManageHabitsScreen(
         HabitDialog(
             habit = null,
             onDismiss = { showCreateDialog = false },
-            onSave = { name, type, goal, unit ->
-                onAddHabit(name, type, goal, unit)
+            onSave = { name, type, goal, unit, targetDays ->
+                onAddHabit(name, type, goal, unit, targetDays)
                 showCreateDialog = false
             }
         )
@@ -71,8 +78,8 @@ fun ManageHabitsScreen(
         HabitDialog(
             habit = habitToEdit,
             onDismiss = { habitToEdit = null },
-            onSave = { name, type, goal, unit ->
-                onUpdateHabit(habitToEdit!!.copy(name = name, type = type, goal = goal, unit = unit))
+            onSave = { name, type, goal, unit, targetDays ->
+                onUpdateHabit(habitToEdit!!.copy(name = name, type = type, goal = goal, unit = unit, targetDays = targetDays))
                 habitToEdit = null
             }
         )
@@ -107,7 +114,7 @@ fun ManageHabitsScreen(
                     text = "No habits yet.\nTap + to create one!",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center
                 )
             }
         } else {
@@ -126,7 +133,7 @@ fun ManageHabitsScreen(
                         onDelete = { onDeleteHabit(habit) }
                     )
                 }
-                item { Spacer(modifier = Modifier.height(80.dp)) } // FAB clearance
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
@@ -161,6 +168,11 @@ fun HabitListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Text(
+                    text = "Days: ${formatDays(habit.targetDays)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
             Row {
                 IconButton(onClick = onEdit) {
@@ -174,17 +186,23 @@ fun HabitListItem(
     }
 }
 
+fun formatDays(days: List<Int>): String {
+    if (days.size == 7) return "Every day"
+    val dayNames = listOf("M", "T", "W", "T", "F", "S", "S")
+    return days.sorted().joinToString(", ") { dayNames.getOrElse(it - 1) { "" } }
+}
+
 @Composable
 fun HabitDialog(
     habit: Habit?,
     onDismiss: () -> Unit,
-    onSave: (name: String, type: HabitType, goal: Float?, unit: String?) -> Unit
+    onSave: (name: String, type: HabitType, goal: Float?, unit: String?, targetDays: List<Int>) -> Unit
 ) {
     var name by remember { mutableStateOf(habit?.name ?: "") }
     var type by remember { mutableStateOf(habit?.type ?: HabitType.CHECKMARK) }
     var goalString by remember { mutableStateOf(habit?.goal?.toString() ?: "") }
     var unit by remember { mutableStateOf(habit?.unit ?: "") }
-
+    var selectedDays by remember { mutableStateOf(habit?.targetDays?.toSet() ?: setOf(1, 2, 3, 4, 5, 6, 7)) }
     var showError by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -238,15 +256,50 @@ fun HabitDialog(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Frequency:", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val days = listOf("M", "T", "W", "T", "F", "S", "S")
+                    days.forEachIndexed { index, dayName ->
+                        val dayNumber = index + 1
+                        val isSelected = selectedDays.contains(dayNumber)
+
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable {
+                                    val newDays = selectedDays.toMutableSet()
+                                    if (isSelected) newDays.remove(dayNumber) else newDays.add(dayNumber)
+                                    selectedDays = newDays
+                                }
+                        ) {
+                            Text(
+                                text = dayName,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                if (showError && selectedDays.isEmpty()) {
+                    Text("Select at least one day", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (name.isNotBlank()) {
+                    if (name.isNotBlank() && selectedDays.isNotEmpty()) {
                         val goalFloat = if (type == HabitType.NUMERIC) goalString.toFloatOrNull() else null
                         val finalUnit = if (type == HabitType.NUMERIC) unit.ifBlank { null } else null
-                        onSave(name.trim(), type, goalFloat, finalUnit)
+                        onSave(name.trim(), type, goalFloat, finalUnit, selectedDays.toList())
                     } else {
                         showError = true
                     }

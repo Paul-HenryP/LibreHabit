@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,6 +26,13 @@ fun Date.toStartOfDay(): Date {
     return calendar.time
 }
 
+fun Date.getDayOfWeek(): Int {
+    val calendar = Calendar.getInstance()
+    calendar.time = this
+    val day = calendar.get(Calendar.DAY_OF_WEEK)
+    return if (day == Calendar.SUNDAY) 7 else day - 1
+}
+
 class HabitViewModel(private val database: AppDatabase) : ViewModel() {
 
     val allHabits: StateFlow<List<Habit>> = database.habitDao().getAllHabits()
@@ -36,6 +44,17 @@ class HabitViewModel(private val database: AppDatabase) : ViewModel() {
 
     private val _selectedDate = MutableStateFlow(Date().toStartOfDay())
     val selectedDate: StateFlow<Date> = _selectedDate.asStateFlow()
+
+    val activeHabitsForDate: StateFlow<List<Habit>> = combine(allHabits, _selectedDate) { habits, date ->
+        val currentDayOfWeek = date.getDayOfWeek()
+        habits.filter { habit ->
+            habit.creationDate.time <= date.time + 86400000L && habit.targetDays.contains(currentDayOfWeek)
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val habitEntriesForDate: StateFlow<List<HabitEntry>> = _selectedDate
@@ -52,14 +71,15 @@ class HabitViewModel(private val database: AppDatabase) : ViewModel() {
         _selectedDate.value = date.toStartOfDay()
     }
 
-    fun addHabit(name: String, type: HabitType, goal: Float?, unit: String?) {
+    fun addHabit(name: String, type: HabitType, goal: Float?, unit: String?, targetDays: List<Int>) {
         viewModelScope.launch {
             val newHabit = Habit(
                 name = name,
                 type = type,
                 goal = goal,
                 unit = unit,
-                creationDate = Date()
+                creationDate = Date().toStartOfDay(),
+                targetDays = targetDays
             )
             database.habitDao().insertHabit(newHabit)
         }
