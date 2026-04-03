@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
             val unitSystem by settingsViewModel.unitSystem.collectAsState()
             val height by settingsViewModel.height.collectAsState()
             val targetWeight by settingsViewModel.targetWeight.collectAsState()
-            val isWeightTrackingEnabled by settingsViewModel.isWeightTrackingEnabled.collectAsState() // UUS VÄÄRTUS
+            val isWeightTrackingEnabled by settingsViewModel.isWeightTrackingEnabled.collectAsState()
 
             val useDarkTheme = when (darkModePreference) {
                 DarkModePreference.LIGHT -> false
@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                         composable("main") {
                             val weightEntries by weightViewModel.allEntries.collectAsState()
 
-                            val habits by habitViewModel.allHabits.collectAsState()
+                            val habits by habitViewModel.activeHabitsForDate.collectAsState()
                             val habitEntries by habitViewModel.habitEntriesForDate.collectAsState()
                             val selectedDate by habitViewModel.selectedDate.collectAsState()
 
@@ -109,7 +109,9 @@ class MainActivity : ComponentActivity() {
                             val habits by habitViewModel.allHabits.collectAsState()
                             ManageHabitsScreen(
                                 habits = habits,
-                                onAddHabit = { name, type, goal, unit -> habitViewModel.addHabit(name, type, goal, unit) },
+                                onAddHabit = { name, type, goal, unit, targetDays ->
+                                    habitViewModel.addHabit(name, type, goal, unit, targetDays)
+                                },
                                 onUpdateHabit = { habit -> habitViewModel.updateHabit(habit) },
                                 onDeleteHabit = { habit -> habitViewModel.deleteHabit(habit) },
                                 onNavigateUp = { navController.popBackStack() }
@@ -128,8 +130,8 @@ class MainActivity : ComponentActivity() {
                                 onHeightChange = { settingsViewModel.setHeight(it) },
                                 targetWeight = targetWeight,
                                 onTargetWeightChange = { settingsViewModel.setTargetWeight(it) },
-                                isWeightTrackingEnabled = isWeightTrackingEnabled, // UUS PARAMEETER
-                                onWeightTrackingEnabledChange = { settingsViewModel.setWeightTrackingEnabled(it) }, // UUS PARAMEETER
+                                isWeightTrackingEnabled = isWeightTrackingEnabled,
+                                onWeightTrackingEnabledChange = { settingsViewModel.setWeightTrackingEnabled(it) },
                                 updateState = updateState,
                                 onCheckForUpdates = { settingsViewModel.checkForUpdates() },
                                 onResetUpdateState = { settingsViewModel.resetUpdateState() },
