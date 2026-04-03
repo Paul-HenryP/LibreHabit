@@ -79,8 +79,8 @@ class MainActivity : ComponentActivity() {
                                 },
                                 habits = habits,
                                 habitEntries = habitEntries,
-                                onSaveHabitEntry = { habitId, value, date ->
-                                    habitViewModel.saveHabitEntry(habitId, value, date)
+                                onSaveHabitEntry = { habit, value, date ->
+                                    habitViewModel.saveHabitEntry(habit, value, date)
                                 },
                                 selectedDate = selectedDate,
                                 onDateSelected = { date ->

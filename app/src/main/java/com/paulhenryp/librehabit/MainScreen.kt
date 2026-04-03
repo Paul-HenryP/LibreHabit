@@ -6,10 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
@@ -18,7 +21,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -34,7 +40,7 @@ fun LibreHabitScreen(
     onSaveWeight: (Float, Date) -> Unit,
     habits: List<Habit>,
     habitEntries: List<HabitEntry>,
-    onSaveHabitEntry: (Int, Float, Date) -> Unit,
+    onSaveHabitEntry: (Habit, Float, Date) -> Unit,
     selectedDate: Date,
     onDateSelected: (Date) -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -146,7 +152,7 @@ fun LibreHabitScreen(
                         habit = habit,
                         entry = entry,
                         onValueChange = { newValue ->
-                            onSaveHabitEntry(habit.id, newValue, selectedDate)
+                            onSaveHabitEntry(habit, newValue, selectedDate)
                         }
                     )
                 }
@@ -250,52 +256,103 @@ fun HabitCard(
     entry: HabitEntry?,
     onValueChange: (Float) -> Unit
 ) {
+    val isCompleted = habit.type == HabitType.CHECKMARK && entry?.value == 1.0f
+
     Card(
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 16.dp)
             .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCompleted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
+        )
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = habit.name,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
-            )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = habit.name,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
 
-            if (habit.type == HabitType.CHECKMARK) {
-                val isChecked = entry?.value == 1.0f
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { checked ->
-                        onValueChange(if (checked) 1.0f else 0.0f)
-                    }
-                )
-            } else {
-                var textValue by remember(entry?.value) {
-                    mutableStateOf(if (entry != null && entry.value > 0) entry.value.toString() else "")
-                }
-                OutlinedTextField(
-                    value = textValue,
-                    onValueChange = { newValue ->
-                        if (newValue.isEmpty() || newValue.toFloatOrNull() != null) {
-                            textValue = newValue
-                            val floatVal = newValue.toFloatOrNull() ?: 0f
-                            onValueChange(floatVal)
+                if (habit.type == HabitType.CHECKMARK) {
+                    Checkbox(
+                        checked = isCompleted,
+                        onCheckedChange = { checked ->
+                            onValueChange(if (checked) 1.0f else 0.0f)
                         }
-                    },
-                    modifier = Modifier.width(80.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-                if (!habit.unit.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = habit.unit, style = MaterialTheme.typography.bodyMedium)
+                    )
+                } else {
+                    var textValue by remember(entry?.value) {
+                        mutableStateOf(if (entry != null && entry.value > 0) {
+                            if (entry.value % 1.0f == 0f) entry.value.toInt().toString() else entry.value.toString()
+                        } else "")
+                    }
+                    val focusManager = LocalFocusManager.current
+
+                    OutlinedTextField(
+                        value = textValue,
+                        onValueChange = { newValue ->
+                            if (newValue.isEmpty() || newValue.toFloatOrNull() != null) {
+                                textValue = newValue
+                            }
+                        },
+                        modifier = Modifier.width(100.dp),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                val floatVal = textValue.toFloatOrNull() ?: 0f
+                                onValueChange(floatVal)
+                            }
+                        ),
+                        singleLine = true,
+                        trailingIcon = {
+                            if (textValue.isNotEmpty() && textValue.toFloatOrNull() != entry?.value) {
+                                IconButton(onClick = {
+                                    focusManager.clearFocus()
+                                    val floatVal = textValue.toFloatOrNull() ?: 0f
+                                    onValueChange(floatVal)
+                                }) {
+                                    Icon(Icons.Default.Check, contentDescription = "Save", tint = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        }
+                    )
+                    if (!habit.unit.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = habit.unit, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+
+            if (habit.type == HabitType.NUMERIC && habit.goal != null && habit.goal > 0f) {
+                val currentValue = entry?.value ?: 0f
+                val progress = (currentValue / habit.goal).coerceIn(0f, 1f)
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LinearProgressIndicator(
+                        progress = progress,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        color = if (progress >= 1f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "${if (currentValue % 1.0f == 0f) currentValue.toInt() else currentValue} / ${if (habit.goal % 1.0f == 0f) habit.goal.toInt() else habit.goal}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         }

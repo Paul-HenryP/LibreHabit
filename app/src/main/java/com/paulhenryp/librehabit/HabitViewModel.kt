@@ -97,15 +97,21 @@ class HabitViewModel(private val database: AppDatabase) : ViewModel() {
         }
     }
 
-    fun saveHabitEntry(habitId: Int, value: Float, date: Date) {
+    fun saveHabitEntry(habit: Habit, value: Float, date: Date) {
         viewModelScope.launch {
             val entryDate = date.toStartOfDay()
-            val existingEntry = habitEntriesForDate.value.find { it.habitId == habitId && it.date == entryDate }
+
+            if (habit.type == HabitType.CHECKMARK && value <= 0f) {
+                database.habitDao().deleteHabitEntryByDate(habit.id, entryDate)
+                return@launch
+            }
+
+            val existingEntry = habitEntriesForDate.value.find { it.habitId == habit.id && it.date == entryDate }
 
             val entryToSave = if (existingEntry != null) {
                 existingEntry.copy(value = value)
             } else {
-                HabitEntry(habitId = habitId, date = entryDate, value = value)
+                HabitEntry(habitId = habit.id, date = entryDate, value = value)
             }
             database.habitDao().insertHabitEntry(entryToSave)
         }
