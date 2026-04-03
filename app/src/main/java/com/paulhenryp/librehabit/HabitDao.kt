@@ -29,6 +29,9 @@ interface HabitDao {
     @Query("SELECT * FROM habit_entries WHERE date = :date")
     fun getHabitEntriesForDate(date: Date): Flow<List<HabitEntry>>
 
+    @Query("DELETE FROM habit_entries WHERE habitId = :habitId AND date = :date")
+    suspend fun deleteHabitEntryByDate(habitId: Int, date: Date)
+
     @Query("DELETE FROM habits")
     suspend fun deleteAllHabits()
 
