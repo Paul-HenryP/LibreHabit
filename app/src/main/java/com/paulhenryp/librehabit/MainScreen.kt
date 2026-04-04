@@ -261,10 +261,21 @@ fun HabitCard(
     Card(
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 16.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(
+                enabled = habit.type == HabitType.CHECKMARK // Klikitav ainult siis, kui on checkmark tüüpi
+            ) {
+                if (habit.type == HabitType.CHECKMARK) {
+                    onValueChange(if (isCompleted) 0.0f else 1.0f)
+                }
+            },
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isCompleted) 0.dp else 2.dp // Eemaldame varju, kui tehtud
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isCompleted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
+            // Eemaldasime läbipaistvuse (alpha). Nüüd on puhas ja selge värv.
+            containerColor = if (isCompleted) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -277,6 +288,7 @@ fun HabitCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
                     ),
+                    color = if (isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
 
