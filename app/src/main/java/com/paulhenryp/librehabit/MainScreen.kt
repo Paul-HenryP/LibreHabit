@@ -264,17 +264,16 @@ fun HabitCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .clickable(
-                enabled = habit.type == HabitType.CHECKMARK // Klikitav ainult siis, kui on checkmark tüüpi
+                enabled = habit.type == HabitType.CHECKMARK
             ) {
                 if (habit.type == HabitType.CHECKMARK) {
                     onValueChange(if (isCompleted) 0.0f else 1.0f)
                 }
             },
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isCompleted) 0.dp else 2.dp // Eemaldame varju, kui tehtud
+            defaultElevation = if (isCompleted) 0.dp else 2.dp
         ),
         colors = CardDefaults.cardColors(
-            // Eemaldasime läbipaistvuse (alpha). Nüüd on puhas ja selge värv.
             containerColor = if (isCompleted) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
         )
     ) {
